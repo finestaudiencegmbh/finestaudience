@@ -27,10 +27,14 @@ function Card({ label, value, sub }) {
 export default function AppointmentsPanel({ appointments, hourlyDay }) {
   const { labels } = useProject();
   const A = labels.appointment;
-  const list = appointments || [];
+  // Hauptübersicht: Termine ohne UTM zählen zu Meta Ads (meist Ad-Leads, die
+  // bei der Buchung eine andere E-Mail genutzt haben). Nur hier, nur zur
+  // Anzeige: Kampagnen-Karten und Quellen-Tab zeigen sie weiter getrennt.
+  const raw = appointments || [];
+  const noUtm = raw.filter((a) => a.sourceGroup === 'Ohne UTM').length;
+  const list = useMemo(() => raw.map((a) => (a.sourceGroup === 'Ohne UTM' ? { ...a, sourceType: 'paid', sourceGroup: 'Meta Ads' } : a)), [raw]);
   const paid = list.filter((a) => a.sourceType === 'paid').length;
   const bookings = list.reduce((n, a) => n + (a.bookings || 1), 0);
-  const noUtm = list.filter((a) => a.sourceGroup === 'Ohne UTM').length;
   const matched = list.filter((a) => a.matchedBy).length;
   const groups = useMemo(() => groupCount(list, (a) => a.sourceGroup, { emptyLabel: 'Ohne UTM' }), [list]);
   // Liegen alle Termine an EINEM Tag (z. B. Webinar-Tag), Uhrzeit-Verlauf
@@ -55,8 +59,8 @@ export default function AppointmentsPanel({ appointments, hourlyDay }) {
         <div className="kpi-section-head"><span className="kpi-dot" style={{ background: AMBER }} />{A.many}</div>
         <div className="kpi-grid">
           <Card label={`${A.many} gebucht`} value={fmtInt(list.length)} sub={bookings > list.length ? `${fmtInt(bookings)} Buchungen · ${fmtInt(bookings - list.length)} Umbuchungen/doppelt` : 'je Person gezählt'} />
-          <Card label={`${A.many} aus Meta Ads`} value={fmtInt(paid)} sub={list.length ? `${fmtPct(paid / list.length)} aller ${A.many}` : '–'} />
-          <Card label="Ohne UTM" value={fmtInt(noUtm)} sub={matched ? `${fmtInt(matched)} weitere über E-Mail/Telefon zugeordnet` : 'andere E-Mail bei der Buchung'} />
+          <Card label={`${A.many} aus Meta Ads`} value={fmtInt(paid)} sub={list.length ? `${fmtPct(paid / list.length)} aller ${A.many}${noUtm ? ` · inkl. ${fmtInt(noUtm)} ohne UTM` : ''}` : '–'} />
+          <Card label="Ohne UTM" value={fmtInt(noUtm)} sub={`bei Meta Ads mitgezählt${matched ? ` · ${fmtInt(matched)} weitere über E-Mail/Telefon zugeordnet` : ''}`} />
           <div className="kpi-card kpi-dist">
             <div className="kpi-label">{A.many} nach Quelle</div>
             <div className="dist-bars">
