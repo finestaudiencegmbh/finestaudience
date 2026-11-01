@@ -13,13 +13,31 @@ import { loadScoringConfig } from './scoring.js';
 import { resolveAdIds } from './adid.js';
 import { combineByAccount, attachAppointments } from './accounts.js';
 
-// Feste Test-Basis, unabhängig vom aktuellen Projekt: Termin-Strang mit
-// Umfrage-Tab (Ticket-Stufe an), erkannt an der Einkommens-Spalte.
+// Feste Test-Basis, unabhängig vom aktuellen Projekt: Lead-Tab mit
+// "Eingetragen am", Umfrage-Tab (Ticket-Stufe an), Termin-Tab mit "Datum Call",
+// UTM-Schema nach Hyros (source = Anzeigengruppe, medium = Creative).
 const P0 = loadProjectConfig();
+const utm = (n) => [`utm_${n}`];
+const COMMON = { utmSource: utm('source'), utmMedium: utm('medium'), utmCampaign: utm('campaign'), utmTerm: utm('term'), utmContent: utm('content'), adId: ['ad_id'] };
 const P = {
   ...P0,
   features: { ...P0.features, hasTickets: true },
-  sheet: { ...P0.sheet, detect: { ...P0.sheet.detect, tickets: [{ some: ['monatliches einkommen'] }] } },
+  sheet: {
+    ...P0.sheet,
+    utmRoles: { campaign: 'campaign', adset: 'source', creative: 'medium', placement: 'term' },
+    detect: {
+      tickets: [{ some: ['monatliches einkommen'] }],
+      leads: [{ all: ['eingetragen am'], some: ['utm_source', 'e-mail'] }],
+      appointments: [{ all: ['datum call'] }],
+    },
+    columns: {
+      leads: { date: ['eingetragen am'], firstName: ['vorname'], lastName: ['nachname'], email: ['e-mail'], ticketDate: [], ...COMMON },
+      tickets: { date: ['eingetragen am'], firstName: ['vorname'], lastName: ['nachname'], email: ['e-mail'], emailAlt: [], phone: ['telefonnummer'], ...COMMON },
+      appointments: { date: ['datum'], name: ['name'], email: ['e-mail'], phone: ['telefonnummer'], callDate: ['datum call'], closer: ['closer', 'datum closer'], ...COMMON },
+      overview: P0.sheet.columns.overview,
+    },
+    answers: { income: { label: 'Einkommen', columns: ['monatliches einkommen'] } },
+  },
 };
 const cfg = loadScoringConfig();
 const CAMP = 'JP | Live-Workshop 01.11. | ABO | TEST | 211026';
