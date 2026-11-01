@@ -49,7 +49,6 @@ export default function AppointmentsPanel({ appointments, hourlyDay }) {
 
   const perSlot = [
     { key: 'total', label: A.many, color: AMBER, data: series.perSlot.map((d) => ({ date: d.date, value: d.total })) },
-    { key: 'paid', label: 'davon Ads', color: SOURCE_COLORS['Meta Ads'], data: series.perSlot.map((d) => ({ date: d.date, value: d.paid })) },
   ];
   const fmtY = (v) => fmtInt(Math.round(v));
 
