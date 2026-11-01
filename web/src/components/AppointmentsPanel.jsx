@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { fmtEur, fmtInt, groupCount, appointmentsByTime } from '../lib.js';
+import { fmtInt, groupCount, appointmentsByTime } from '../lib.js';
 import { useProject } from '../project.jsx';
 import TimeChart from './TimeChart.jsx';
 import IntradayChart from './IntradayChart.jsx';
@@ -22,13 +22,12 @@ function Card({ label, value, sub }) {
 
 /**
  * Termine aus dem Termin-Tab: Kacheln, Quellen-Balken und Verlauf. Eigener
- * Strang, berührt keine Lead-/Ticket-Zahl. `spend` = Adspend im Zeitraum.
+ * Strang, berührt keine Lead-/Ticket-Zahl.
  */
-export default function AppointmentsPanel({ appointments, spend, hourlyDay }) {
+export default function AppointmentsPanel({ appointments, hourlyDay }) {
   const { labels } = useProject();
   const A = labels.appointment;
   const list = appointments || [];
-  const paid = list.filter((a) => a.sourceType === 'paid').length;
   const bookings = list.reduce((n, a) => n + (a.bookings || 1), 0);
   const noUtm = list.filter((a) => a.sourceGroup === 'Ohne UTM').length;
   const matched = list.filter((a) => a.matchedBy).length;
@@ -55,7 +54,6 @@ export default function AppointmentsPanel({ appointments, spend, hourlyDay }) {
         <div className="kpi-section-head"><span className="kpi-dot" style={{ background: AMBER }} />{A.many}</div>
         <div className="kpi-grid">
           <Card label={`${A.many} gebucht`} value={fmtInt(list.length)} sub={bookings > list.length ? `${fmtInt(bookings)} Buchungen · ${fmtInt(bookings - list.length)} Umbuchungen/doppelt` : 'je Person gezählt'} />
-          <Card label={`Kosten / ${A.one}`} value={fmtEur(paid && spend ? spend / paid : null)} sub={`Adspend ÷ ${A.many} aus Ads`} />
           <Card label="Ohne UTM" value={fmtInt(noUtm)} sub={matched ? `${fmtInt(matched)} weitere über E-Mail/Telefon zugeordnet` : 'andere E-Mail bei der Buchung'} />
           <div className="kpi-card kpi-dist">
             <div className="kpi-label">{A.many} nach Quelle</div>

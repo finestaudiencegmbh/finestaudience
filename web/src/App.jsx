@@ -235,7 +235,7 @@ export default function App() {
                 {/* KPI-Boxen darunter */}
                 <Kpis kpis={kpis} dist={dist} tiers={tiers} qualifiedTiers={qualifiedTiers} qualityDaily={qualityDaily} />
 
-                {hasAppointments && <AppointmentsPanel appointments={appointments} spend={kpis.spend} hourlyDay={hourlyDay} />}
+                {hasAppointments && <AppointmentsPanel appointments={appointments} hourlyDay={hourlyDay} />}
 
                 <LeadHeatmap leads={filtered} />
 

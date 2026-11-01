@@ -36,7 +36,7 @@ function Metrics({ n, leadHidden }) {
         ...(hasTickets ? [[T.many, lead(fmtInt(n.tickets))]] : []),
         ['€/Lead', lead(fmtEur(n.cpl))],
         ...(hasTickets ? [[`€/${T.one}`, lead(fmtEur(n.cpt))]] : []),
-        ...(hasAppointments ? [[AP.many, lead(fmtInt(n.appointments ?? 0))], [`€/${AP.one}`, lead(fmtEur(n.cpa))]] : []),
+        ...(hasAppointments ? [[AP.many, lead(fmtInt(n.appointments ?? 0))]] : []),
       ],
     },
     {

@@ -111,10 +111,8 @@ const { unassigned } = attachAppointments(fb.hierarchy, meta.byAccount, A);
 const camp = (account) => fb.hierarchy.find((c) => c.account === account);
 // Die Anzeige mit dieser Ad-ID liegt in Konto A: Paula, Lea (über Lead) und Sina (über Umfrage)
 assert.equal(camp('act_A').appointments, 3, 'Termine mit Ad-ID im richtigen Konto');
-assert.equal(camp('act_A').cpa, 100, 'Kosten/Termin = 300 € ÷ 3');
 assert.equal(camp('act_A').adsets[0].ads[0].appointments, 3, 'bis auf die Anzeige');
 assert.equal(camp('act_B').appointments, 0, 'nichts in Konto B');
-assert.equal(camp('act_B').cpa, null);
 assert.equal(unassigned, 0);
 assert.equal(JSON.stringify(fb.hierarchy.map((c) => [c.spend, c.leads, c.tickets, c.cpl])), before, 'Spend/Leads/Tickets/CPL unverändert');
 

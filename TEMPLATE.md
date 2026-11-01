@@ -60,7 +60,7 @@ Spend-Zahl verändert:
 
 - Dashboard: Panel „Termine“ unter der Lead-Qualität (Kacheln, Quellen-Balken,
   Verlauf und kumulierte Kurve).
-- Kampagnen: Termine und €/Termin je Kampagne, Anzeigengruppe und Anzeige,
+- Kampagnen: Termine je Kampagne, Anzeigengruppe und Anzeige,
   je Werbekonto getrennt (Zuordnung wie bei Leads: Ad-ID, sonst eindeutiger Name).
 - Quellen: Termine je Quelle (Meta Ads, Affiliate, E-Mail, Ohne UTM …),
   je Unterquelle und die Top-Anzeigen nach Terminen.

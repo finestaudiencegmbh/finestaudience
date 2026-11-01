@@ -139,8 +139,9 @@ export function combineByAccount(meta, leads, opts = {}) {
 }
 
 /**
- * Termine (Termin-Tab) an die Kampagnen-Hierarchie hängen: `appointments` und
- * `cpa` (Spend ÷ Termine) je Kampagne, Anzeigengruppe und Anzeige. Zuordnung
+ * Termine (Termin-Tab) an die Kampagnen-Hierarchie hängen: `appointments` je
+ * Kampagne, Anzeigengruppe und Anzeige. Bewusst ohne Kosten/Termin: Termine
+ * entstehen am Webinar-Tag, der Spend dafür über Wochen davor. Zuordnung
  * zum Konto wie bei Leads (Ad-ID, sonst eindeutiger Name). Ändert nur die
  * Termin-Felder, alle anderen Kennzahlen bleiben unberührt.
  *
@@ -165,7 +166,6 @@ export function attachAppointments(hierarchy, byAccount, appointments) {
   }
   const put = (node, account, dim, parts) => {
     node.appointments = counts.get(ck(account, dim, parts)) || 0;
-    node.cpa = node.appointments ? Math.round((node.spend / node.appointments) * 100) / 100 : null;
   };
   for (const c of hierarchy || []) {
     put(c, c.account, 'campaign', { campaign: c.name });
