@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { fmtEur, fmtInt, fmtPct, groupCount, appointmentsByTime } from '../lib.js';
+import { fmtEur, fmtInt, groupCount, appointmentsByTime } from '../lib.js';
 import { useProject } from '../project.jsx';
 import TimeChart from './TimeChart.jsx';
 import IntradayChart from './IntradayChart.jsx';
@@ -33,16 +33,19 @@ export default function AppointmentsPanel({ appointments, spend, hourlyDay }) {
   const noUtm = list.filter((a) => a.sourceGroup === 'Ohne UTM').length;
   const matched = list.filter((a) => a.matchedBy).length;
   const groups = useMemo(() => groupCount(list, (a) => a.sourceGroup, { emptyLabel: 'Ohne UTM' }), [list]);
-  const series = useMemo(() => appointmentsByTime(list, hourlyDay), [list, hourlyDay]);
+  // Liegen alle Termine an EINEM Tag (z. B. Webinar-Tag), Uhrzeit-Verlauf
+  // statt eines einzelnen Tagespunkts, auch wenn der Zeitraum länger ist.
+  const day = useMemo(() => {
+    if (hourlyDay) return hourlyDay;
+    const days = new Set(list.map((a) => String(a.at || '').slice(0, 10)).filter(Boolean));
+    return days.size === 1 ? [...days][0] : null;
+  }, [list, hourlyDay]);
+  const series = useMemo(() => appointmentsByTime(list, day), [list, day]);
   const max = Math.max(1, ...groups.map((g) => g.count));
 
   const perSlot = [
     { key: 'total', label: A.many, color: AMBER, data: series.perSlot.map((d) => ({ date: d.date, value: d.total })) },
     { key: 'paid', label: 'davon Ads', color: SOURCE_COLORS['Meta Ads'], data: series.perSlot.map((d) => ({ date: d.date, value: d.paid })) },
-  ];
-  const cumulative = [
-    { key: 'total', label: `${A.many} gesamt`, color: AMBER, data: series.cumulative.map((d) => ({ date: d.date, value: d.total })) },
-    { key: 'paid', label: 'davon Ads', color: SOURCE_COLORS['Meta Ads'], data: series.cumulative.map((d) => ({ date: d.date, value: d.paid })) },
   ];
   const fmtY = (v) => fmtInt(Math.round(v));
 
@@ -52,7 +55,6 @@ export default function AppointmentsPanel({ appointments, spend, hourlyDay }) {
         <div className="kpi-section-head"><span className="kpi-dot" style={{ background: AMBER }} />{A.many}</div>
         <div className="kpi-grid">
           <Card label={`${A.many} gebucht`} value={fmtInt(list.length)} sub={bookings > list.length ? `${fmtInt(bookings)} Buchungen · ${fmtInt(bookings - list.length)} Umbuchungen/doppelt` : 'je Person gezählt'} />
-          <Card label={`${A.many} aus Ads`} value={fmtInt(paid)} sub={list.length ? `${fmtPct(paid / list.length)} aller ${A.many}` : '–'} />
           <Card label={`Kosten / ${A.one}`} value={fmtEur(paid && spend ? spend / paid : null)} sub={`Adspend ÷ ${A.many} aus Ads`} />
           <Card label="Ohne UTM" value={fmtInt(noUtm)} sub={matched ? `${fmtInt(matched)} weitere über E-Mail/Telefon zugeordnet` : 'andere E-Mail bei der Buchung'} />
           <div className="kpi-card kpi-dist">
@@ -69,18 +71,10 @@ export default function AppointmentsPanel({ appointments, spend, hourlyDay }) {
             </div>
           </div>
         </div>
-        <div className="charts-grid appt-charts">
-          {hourlyDay ? (
-            <>
-              <IntradayChart title={`${A.many} im Tagesverlauf`} formatY={fmtY} series={perSlot} />
-              <IntradayChart title={`${A.many} kumuliert`} formatY={fmtY} series={cumulative} />
-            </>
-          ) : (
-            <>
-              <TimeChart title={`${A.many} pro Tag`} formatY={fmtY} series={perSlot} />
-              <TimeChart title={`${A.many} kumuliert`} formatY={fmtY} series={cumulative} />
-            </>
-          )}
+        <div className="appt-charts">
+          {day
+            ? <IntradayChart title={`${A.many} im Tagesverlauf · ${day.slice(8, 10)}.${day.slice(5, 7)}.`} formatY={fmtY} series={perSlot} />
+            : <TimeChart title={`${A.many} pro Tag`} formatY={fmtY} series={perSlot} />}
         </div>
       </section>
     </div>
