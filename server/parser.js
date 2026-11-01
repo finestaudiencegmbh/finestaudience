@@ -60,6 +60,21 @@ export const DEFAULT_SHEET_CONFIG = {
       utmContent: ['utm_content'],
       adId: ['ad_id', 'h_ad_id', 'cmc_adid'],
     },
+    // Termin-Tab (optional, features.hasAppointments): eine Zeile je Buchung
+    appointments: {
+      date: ['datum'],
+      name: ['name'],
+      email: ['e-mail'],
+      phone: ['telefonnummer', 'handynummer'],
+      callDate: ['datum call'],
+      closer: ['closer', 'datum closer'],
+      utmSource: ['utm_source'],
+      utmMedium: ['utm_medium'],
+      utmCampaign: ['utm_campaign'],
+      utmTerm: ['utm_term'],
+      utmContent: ['utm_content'],
+      adId: ['ad_id', 'h_ad_id', 'cmc_adid'],
+    },
     overview: {
       status: ['status'],
       adset: ['anzeigengruppe'],
@@ -271,25 +286,42 @@ function parseTicketRow(o, cols, answerCfg) {
   };
 }
 
+function parseAppointmentRow(o, cols) {
+  const at = parseDate(pick(o, cols.date));
+  if (!at) return null; // Zähl-/Summenzeilen ohne gültiges Datum überspringen
+  return {
+    at,
+    callAt: parseDate(pick(o, cols.callDate)),
+    name: norm(pick(o, cols.name)),
+    email: normEmail(pick(o, cols.email)),
+    phone: norm(pick(o, cols.phone)),
+    closer: norm(pick(o, cols.closer)),
+    utm: utmOf(o, cols),
+    adId: adIdOf(o, cols),
+  };
+}
+
 /**
  * Hauptfunktion: bekommt die Tabs als [{title, values}] und liefert
- * { leads, tickets, overview, warnings }.
+ * { leads, tickets, overview, appointments, warnings }.
  *
  * @param {array}  sheets    Tabs aus dem Google Sheet
  * @param {object} sheetCfg  Spalten-Mapping (Default: DEFAULT_SHEET_CONFIG)
- * @param {object} features  { hasTickets } – ohne Tickets wird der Ticket-Tab
- *                           gar nicht erst gelesen.
+ * @param {object} features  { hasTickets, hasAppointments } – abgeschaltete
+ *                           Tabs werden gar nicht erst gelesen.
  */
 export function parseSheets(sheets, sheetCfg = DEFAULT_SHEET_CONFIG, features = {}) {
-  const { hasTickets = true } = features;
+  const { hasTickets = true, hasAppointments = false } = features;
   const cols = sheetCfg.columns || DEFAULT_SHEET_CONFIG.columns;
   const answerCfg = sheetCfg.answers || {};
   const detect = { ...(sheetCfg.detect || DEFAULT_SHEET_CONFIG.detect) };
   if (!hasTickets) delete detect.tickets;
+  if (!hasAppointments) delete detect.appointments;
 
   const leads = [];
   const tickets = [];
   const overview = [];
+  const appointments = [];
   const warnings = [];
   const seenTickets = new Set();
 
@@ -312,12 +344,15 @@ export function parseSheets(sheets, sheetCfg = DEFAULT_SHEET_CONFIG, features = 
           if (seenTickets.has(dk)) continue;
           seenTickets.add(dk);
           tickets.push(r);
+        } else if (table.type === 'appointments') {
+          const r = parseAppointmentRow(o, cols.appointments || DEFAULT_SHEET_CONFIG.columns.appointments);
+          if (r) appointments.push(r);
         }
       }
     }
   }
 
-  return { leads, tickets, overview, warnings };
+  return { leads, tickets, overview, appointments, warnings };
 }
 
 export const _internal = { classifyHeader, key, num, parseDate, iterateTables, pick };

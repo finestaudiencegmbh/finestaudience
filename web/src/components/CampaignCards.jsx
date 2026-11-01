@@ -23,8 +23,9 @@ const fmtScore = (n) => (n == null ? '–' : String(Math.round(n)));
  * umbruchfähig. Ticket-/Qualitäts-Kacheln nur, wenn das Projekt sie hat. */
 function Metrics({ n, leadHidden }) {
   const { features, labels } = useProject();
-  const { hasTickets, hasQuality } = features;
+  const { hasTickets, hasQuality, hasAppointments } = features;
   const T = labels.ticket;
+  const AP = labels.appointment;
   const lead = (v) => (leadHidden ? '–' : v);
   const groups = [
     {
@@ -35,6 +36,7 @@ function Metrics({ n, leadHidden }) {
         ...(hasTickets ? [[T.many, lead(fmtInt(n.tickets))]] : []),
         ['€/Lead', lead(fmtEur(n.cpl))],
         ...(hasTickets ? [[`€/${T.one}`, lead(fmtEur(n.cpt))]] : []),
+        ...(hasAppointments ? [[AP.many, lead(fmtInt(n.appointments ?? 0))], [`€/${AP.one}`, lead(fmtEur(n.cpa))]] : []),
       ],
     },
     {
@@ -129,7 +131,7 @@ function useCampaignOrder(slug) {
 
 export default function CampaignCards({ hierarchy, dailyByEntity, intradayByEntity, intradayDay, accounts }) {
   const { features, labels, slug } = useProject();
-  const { hasTickets, hasQuality } = features;
+  const { hasTickets, hasQuality, hasAppointments } = features;
   const T = labels.ticket;
   // Spalten der Anzeigen-Tabelle: Name + je nach Feature 5–7 Kennzahlen
   const adCols = [
@@ -138,6 +140,7 @@ export default function CampaignCards({ hierarchy, dailyByEntity, intradayByEnti
     { label: 'CPL', value: (ad, hidden) => (hidden ? '–' : fmtEur(ad.cpl)) },
     ...(hasTickets ? [{ label: T.many, value: (ad, hidden) => (hidden ? '–' : fmtInt(ad.tickets)) }] : []),
     ...(hasQuality ? [{ label: 'Qualität', value: (ad, hidden) => (hidden ? '–' : fmtQuality(ad.avgQuality)) }] : []),
+    ...(hasAppointments ? [{ label: labels.appointment.many, value: (ad, hidden) => (hidden ? '–' : fmtInt(ad.appointments ?? 0)) }] : []),
     { label: 'CVR Start', value: (ad, hidden) => (hidden ? '–' : fmtPct(ad.cvrStart)) },
     { label: 'CTR ausg.', value: (ad) => fmtPct(ad.outboundCtr), always: true },
   ];
@@ -258,6 +261,7 @@ export default function CampaignCards({ hierarchy, dailyByEntity, intradayByEnti
                             <span className="cc-sm-item"><b>{leadHidden ? '–' : fmtInt(a.leads)}</b> Leads</span>
                             <span className="cc-sm-item"><b>{leadHidden ? '–' : fmtEur(a.cpl)}</b> CPL</span>
                             {hasQuality && <span className="cc-sm-item"><b>{leadHidden ? '–' : fmtQuality(a.avgQuality)}</b> Quali</span>}
+                            {hasAppointments && <span className="cc-sm-item"><b>{leadHidden ? '–' : fmtInt(a.appointments ?? 0)}</b> {labels.appointment.many}</span>}
                           </span>
                           {hasGraph('adset', { campaign: c.name, adset: a.name, account: c.account }) && <GraphBtn onClick={() => openGraph('adset', { campaign: c.name, adset: a.name, account: c.account }, a.name)} />}
                         </div>

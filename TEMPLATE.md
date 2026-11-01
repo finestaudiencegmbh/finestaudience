@@ -32,7 +32,9 @@ Das ist die einzige Datei, die jedes Projekt anfassen muss.
 | `branding.logo` | Pfad zu einer Datei in `web/public/`, z. B. `/logo.svg`. |
 | `features.hasTickets` | Gibt es eine zweite Conversion-Stufe nach dem Lead (Ticket, Upgrade, Bewerbung)? |
 | `features.hasQuality` | Gibt es einen Fragebogen mit Lead-Scoring? Setzt `hasTickets` voraus – die Antworten stecken im Ticket-Tab. |
+| `features.hasAppointments` | Gibt es einen Termin-Tab (Buchungen, erkannt an der Spalte `Datum Call`)? Standard `false`. |
 | `labels.ticket` | Wie die zweite Stufe heißt: `one` (Einzahl), `many` (Mehrzahl), `short` (Badge/Spalte). |
+| `labels.appointment` | Wie Termine heißen, `one`/`many` (Standard „Termin“/„Termine“). |
 | `sheet.utmRoles` | Welcher UTM-Parameter welche Dimension trägt (siehe unten). |
 | `sheet.detect` | Wie die Tabellen im Sheet erkannt werden (siehe unten). |
 | `sheet.columns` | Spaltenüberschriften je Tabelle. |
@@ -50,6 +52,24 @@ sauberes Lead-Dashboard mit Spend, CPL, CTR, CPM und Quellen-Aufschlüsselung.
 Quali-Rate, Ø Quali, Tier A–D, Verteilungsbalken, Qualitäts-Verlauf, die
 Fragebogen-Filter, das Antworten-Detail beim Aufklappen eines Leads, die
 Antwort-Spalten im CSV und alle Quali-Felder im Chatbot-Kontext.
+
+### Was `hasAppointments: true` hinzufügt
+
+Ein eigener Strang aus dem Termin-Tab, der **keine** Lead-, Ticket- oder
+Spend-Zahl verändert:
+
+- Dashboard: Panel „Termine“ unter der Lead-Qualität (Kacheln, Quellen-Balken,
+  Verlauf und kumulierte Kurve).
+- Kampagnen: Termine und €/Termin je Kampagne, Anzeigengruppe und Anzeige,
+  je Werbekonto getrennt (Zuordnung wie bei Leads: Ad-ID, sonst eindeutiger Name).
+- Quellen: Termine je Quelle (Meta Ads, Affiliate, E-Mail, Ohne UTM …),
+  je Unterquelle und die Top-Anzeigen nach Terminen.
+
+Gezählt wird je Person: Umbuchungen und doppelte Buchungen werden über
+E-Mail oder Telefonnummer zusammengefasst. Fehlen die UTMs (andere E-Mail bei
+der Buchung als beim Opt-in), sucht der Server die Person über die E-Mail im
+Lead-Tab oder die Telefonnummer im Fragebogen. Die Spalten stehen in
+`sheet.columns.appointments`, die Erkennung in `sheet.detect.appointments`.
 
 ### UTM-Rollen — der wichtigste Punkt
 
@@ -420,7 +440,7 @@ Ad-Status.
 ## Checkliste pro neuem Projekt
 
 - [ ] `config/project.config.json`: Name, Subtitle, Slug, Akzentfarbe, Logo
-- [ ] `config/project.config.json`: `features.hasTickets` / `hasQuality` gesetzt
+- [ ] `config/project.config.json`: `features.hasTickets` / `hasQuality` / `hasAppointments` gesetzt
 - [ ] `config/project.config.json`: `labels.ticket` passend benannt
 - [ ] `config/project.config.json`: `sheet.utmRoles` gegen das echte URL-Schema geprüft
 - [ ] Meta-URL-Parameter enthält `ad_id={{ad.id}}`, Spalte `ad_id` in Lead- und Umfrage-Tab

@@ -6,13 +6,13 @@ import express from 'express';
 
 import { fetchAllSheets, isConfigured } from './sheets.js';
 import { parseSheets } from './parser.js';
-import { buildDataset } from './build.js';
+import { buildDataset, labelAppointmentSources } from './build.js';
 import { loadScoringConfig, qualifiedTiersOf } from './scoring.js';
 import { getSampleParsed } from './sample-data.js';
 import { isSupermetricsConfigured, fetchFbInsights, aggregateFb } from './supermetrics.js';
 import { isMetaConfigured, fetchMetaAll, diagnoseMeta, findInMeta, accountTargets, META_STEPS_PER_ACCOUNT } from './meta.js';
 import { resolveAdIds } from './adid.js';
-import { combineByAccount } from './accounts.js';
+import { combineByAccount, attachAppointments } from './accounts.js';
 import { applyScope } from './scope.js';
 import { isChatConfigured, buildContext, chat } from './chat.js';
 import { loadProjectConfig, publicProjectConfig } from './project.js';
@@ -121,6 +121,11 @@ async function buildPayloadInner({ from, to, key, prog, refresh }) {
       // Bewusst gegen ALLE Kampagnen, damit auch Leads aus Kampagnen außerhalb
       // des Projekt-Bereichs erkannt und gemeldet werden.
       const adIds = resolveAdIds(dataset.leads, all);
+      // Termine genauso exakt über die Ad-ID zuordnen (eigener Strang)
+      if (dataset.appointments.length) {
+        resolveAdIds(dataset.appointments, all);
+        labelAppointmentSources(dataset.appointments);
+      }
       // Projekt-Bereich: nur Kampagnen dieses Funnels zählen (Landingpage/Name)
       const scoped = applyScope(all, PROJECT.scope);
       const meta = scoped.meta;
@@ -133,7 +138,11 @@ async function buildPayloadInner({ from, to, key, prog, refresh }) {
       const hourlyDay = from && to && from === to ? from : null;
       // Jedes Werbekonto getrennt rechnen – nichts wird zwischen Konten vermischt
       const combined = combineByAccount(meta, leadsInRange, { hourlyDay, features, qualifiedTiers });
-      fb = { configured: true, provider: 'meta', error: null, fetchedAt: new Date().toISOString(), ...agg, hierarchy: combined.hierarchy, daily: combined.daily, totals: combined.totals, nonLeadCampaigns: combined.nonLeadCampaigns, uocByDim: combined.uocByDim, dimMeta: combined.dimMeta, dailyByEntity: combined.dailyByEntity, intradayByEntity: combined.intradayByEntity, intradayDay: combined.intradayDay, accounts: all.accounts, adIds, unassigned: combined.unassigned, accountsRequested: all.accountsRequested, accountErrors: all.accountErrors, accountWarnings: all.accountWarnings, scope: { active: scoped.active, rules: PROJECT.scope || null, excluded: scoped.excluded, leadsOutside } };
+      // Termine je Kampagne/Anzeigengruppe/Anzeige (nur Termin-Felder)
+      const appointmentsUnassigned = features.hasAppointments
+        ? attachAppointments(combined.hierarchy, meta.byAccount, filterByDay(dataset.appointments, (a) => a.at, from, to)).unassigned
+        : 0;
+      fb = { configured: true, provider: 'meta', error: null, fetchedAt: new Date().toISOString(), ...agg, hierarchy: combined.hierarchy, daily: combined.daily, totals: combined.totals, nonLeadCampaigns: combined.nonLeadCampaigns, uocByDim: combined.uocByDim, dimMeta: combined.dimMeta, dailyByEntity: combined.dailyByEntity, intradayByEntity: combined.intradayByEntity, intradayDay: combined.intradayDay, accounts: all.accounts, adIds, unassigned: combined.unassigned, accountsRequested: all.accountsRequested, accountErrors: all.accountErrors, accountWarnings: all.accountWarnings, scope: { active: scoped.active, rules: PROJECT.scope || null, excluded: scoped.excluded, leadsOutside }, appointmentsUnassigned };
     } catch (err) {
       console.error('Meta-Fehler:', err.message);
       fb.error = err.message;
@@ -173,6 +182,15 @@ function filterLeadsByRange(leads, from, to) {
     if (from && day < from) return false;
     if (to && day > to) return false;
     return true;
+  });
+}
+
+/** Wie filterLeadsByRange, mit frei wählbarem Datumsfeld (z. B. Termine: at). */
+function filterByDay(rows, dateOf, from, to) {
+  if (!from && !to) return rows;
+  return rows.filter((r) => {
+    const day = (dateOf(r) || '').slice(0, 10);
+    return Boolean(day) && (!from || day >= from) && (!to || day <= to);
   });
 }
 

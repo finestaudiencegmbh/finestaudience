@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchData } from './api.js';
-import { applyFilters, aggregate, computeKpis, tierDistribution, leadsByDay, leadsByTime, cplByDay, qualityTrend, qualifiedTiersOf, fmtDate } from './lib.js';
+import { applyFilters, aggregate, computeKpis, tierDistribution, leadsByDay, leadsByTime, cplByDay, qualityTrend, qualifiedTiersOf, fmtDate, filterAppointments } from './lib.js';
 import Kpis from './components/Kpis.jsx';
 import Filters from './components/Filters.jsx';
 import BreakdownTable from './components/BreakdownTable.jsx';
@@ -14,6 +14,7 @@ import ChatBot from './components/ChatBot.jsx';
 import LeadHeatmap from './components/LeadHeatmap.jsx';
 import DataSources from './components/DataSources.jsx';
 import LoadProgress from './components/LoadProgress.jsx';
+import AppointmentsPanel from './components/AppointmentsPanel.jsx';
 import { useProject } from './project.jsx';
 import { fmtEur, fmtInt } from './lib.js';
 
@@ -33,7 +34,7 @@ const EMPTY_FILTERS = {
 export default function App() {
   const project = useProject();
   const { features, labels, branding } = project;
-  const { hasTickets, hasQuality } = features;
+  const { hasTickets, hasQuality, hasAppointments } = features;
   const T = labels.ticket;
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -79,6 +80,8 @@ export default function App() {
   const fb = data?.fb || null;
   const hasFb = Boolean(fb?.byDim);
   const filtered = useMemo(() => (data ? applyFilters(data.leads, filters) : []), [data, filters]);
+  // Termine: eigener Strang aus dem Termin-Tab, gleiche Filter soweit passend
+  const appointments = useMemo(() => (data && hasAppointments ? filterAppointments(data.appointments, filters) : []), [data, filters, hasAppointments]);
   const kpis = useMemo(() => (data ? computeKpis(filtered, data.overviewByAdset, fb, features, qualifiedTiers) : null), [data, filtered, fb, features, qualifiedTiers]);
   const dist = useMemo(() => (data ? tierDistribution(filtered, tiers) : {}), [data, filtered, tiers]);
   // Stunden-Raster, wenn der gewählte Zeitraum genau EIN Tag ist (0–24 Uhr).
@@ -232,6 +235,8 @@ export default function App() {
                 {/* KPI-Boxen darunter */}
                 <Kpis kpis={kpis} dist={dist} tiers={tiers} qualifiedTiers={qualifiedTiers} qualityDaily={qualityDaily} />
 
+                {hasAppointments && <AppointmentsPanel appointments={appointments} spend={kpis.spend} hourlyDay={hourlyDay} />}
+
                 <LeadHeatmap leads={filtered} />
 
                 {organicRows.length > 0 && (
@@ -300,7 +305,7 @@ export default function App() {
               </section>
             )}
 
-            {view === 'sources' && <SourcesView leads={filtered} />}
+            {view === 'sources' && <SourcesView leads={filtered} appointments={hasAppointments ? appointments : null} />}
 
             {/* Mobil ist die Sidebar-Fußzeile ausgeblendet -> Status hier unten */}
             <div className="ds-mobile"><DataSources data={data} /></div>
@@ -309,6 +314,7 @@ export default function App() {
               {data.counts.leads} Leads · {data.counts.paidLeads} bezahlt
               {hasTickets && ` · ${data.counts.tickets} ${T.many}`}
               {hasQuality && ` · ${data.counts.scored} bewertet`}
+              {hasAppointments && ` · ${data.counts.appointments ?? 0} ${labels.appointment.many}`}
               {' · '}Quelle: {data.source === 'google' ? 'Google Sheet (live)' : 'Demo'}
             </footer>
           </>

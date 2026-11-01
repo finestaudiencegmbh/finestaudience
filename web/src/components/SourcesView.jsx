@@ -1,9 +1,11 @@
 import React from 'react';
 import Donut from './Donut.jsx';
 import { groupCount } from '../lib.js';
+import { useProject } from '../project.jsx';
+import { sourceColor } from './AppointmentsPanel.jsx';
 
 /** Horizontale Balken-Liste (Top-N) wie im Referenz-Screenshot. */
-function RankList({ title, subtitle, items, color = '#a78bfa' }) {
+function RankList({ title, subtitle, items, color = '#a78bfa', colorOf }) {
   const max = Math.max(1, ...items.map((i) => i.count));
   return (
     <div className="panel">
@@ -21,7 +23,7 @@ function RankList({ title, subtitle, items, color = '#a78bfa' }) {
               <span className="rank-count">{it.count}</span>
             </div>
             <div className="rank-track">
-              <div className="rank-fill" style={{ width: `${(it.count / max) * 100}%`, background: color }} />
+              <div className="rank-fill" style={{ width: `${(it.count / max) * 100}%`, background: colorOf ? colorOf(it) : color }} />
             </div>
           </div>
         ))}
@@ -31,7 +33,31 @@ function RankList({ title, subtitle, items, color = '#a78bfa' }) {
   );
 }
 
-export default function SourcesView({ leads: allRows }) {
+/**
+ * Termine je Quelle (Termin-Tab): Gruppe, Unterquelle und die Anzeigen mit
+ * den meisten Terminen. Termine ohne UTM erscheinen als eigene Gruppe.
+ */
+function AppointmentSources({ appointments }) {
+  const { labels } = useProject();
+  const A = labels.appointment;
+  const byGroup = groupCount(appointments, (a) => a.sourceGroup, { emptyLabel: 'Ohne UTM' });
+  const byDetail = groupCount(appointments.filter((a) => a.sourceGroup !== 'Ohne UTM'), (a) => `${a.sourceGroup} · ${a.sourceDetail}`, { limit: 12 });
+  const byAd = groupCount(appointments.filter((a) => a.sourceType === 'paid'), (a) => a.creative, { limit: 12, emptyLabel: '(ohne Anzeige)' });
+  const groupOf = (it) => sourceColor(it.key.split(' · ')[0]);
+  return (
+    <>
+      <div className="sources-section-head">{A.many} nach Quelle</div>
+      <div className="sources-grid">
+        <RankList title={`${A.many} je Quelle`} subtitle={`${appointments.length} ${A.many} im Zeitraum · je Person gezählt`} items={byGroup} colorOf={groupOf} />
+        <RankList title="Unterquellen" subtitle="Kampagne, Mail oder Kanal" items={byDetail} colorOf={groupOf} />
+        <RankList title={`Top-Anzeigen nach ${A.many}`} subtitle={`${A.many} je Meta-Anzeige`} items={byAd} color={sourceColor('Meta Ads')} />
+      </div>
+      <div className="sources-section-head">Leads nach Quelle</div>
+    </>
+  );
+}
+
+export default function SourcesView({ leads: allRows, appointments = null }) {
   // Quellen-Auswertung über die Lead-Zeilen (nicht über die Fragebogen-Zeilen)
   const leads = allRows.filter((l) => l.isLead !== false);
   const bySource = groupCount(leads, (l) => l.sourceRaw, { emptyLabel: '(direkt)' });
@@ -39,6 +65,8 @@ export default function SourcesView({ leads: allRows }) {
   const byContent = groupCount(leads, (l) => l.mediumRaw, { limit: 8, emptyLabel: '(direkt)' });
 
   return (
+    <>
+    {appointments && <AppointmentSources appointments={appointments} />}
     <div className="sources-grid">
       <div className="panel">
         <div className="panel-head">
@@ -52,5 +80,6 @@ export default function SourcesView({ leads: allRows }) {
       <RankList title="Top Kampagnen · utm_campaign" subtitle="Leads je Kampagne" items={byCampaign} color="#5ec8d8" />
       <RankList title="Ad-Varianten · utm_medium" subtitle="Leads je Creative/Variante" items={byContent} color="#a78bfa" />
     </div>
+    </>
   );
 }

@@ -503,3 +503,71 @@ export function groupCount(leads, getKey, { limit = 0, emptyLabel = '(direkt)' }
   if (limit > 0) arr = arr.slice(0, limit);
   return arr;
 }
+
+// ---- Termine (Termin-Tab, eigener Strang) ------------------------------------
+
+/**
+ * Termine nach denselben Filtern wie die Leads, soweit sie auf Termine passen:
+ * Zeitraum (Buchungsdatum), Quelle, Kampagne/Anzeigengruppe/Creative, Suche.
+ * Fragebogen-, Qualitäts- und Ticket-Filter gelten nur für Leads.
+ */
+export function filterAppointments(list, f) {
+  return (list || []).filter((a) => {
+    if (f.sourceType !== 'all' && a.sourceType !== f.sourceType) return false;
+    if (f.campaign && a.campaign !== f.campaign) return false;
+    if (f.adset && a.adset !== f.adset) return false;
+    if (f.creative && a.creative !== f.creative) return false;
+    if (f.from || f.to) {
+      const day = dayKey(a.at);
+      if (!day) return false;
+      if (f.from && day < f.from) return false;
+      if (f.to && day > f.to) return false;
+    }
+    if (f.search) {
+      const hay = `${a.name} ${a.email} ${a.creative} ${a.adset}`.toLowerCase();
+      if (!hay.includes(f.search.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Termine über die Zeit: { perSlot, cumulative } als [{ date, total, paid }].
+ * Bei hourlyDay minutengenau (wie der Lead-Verlauf), sonst je Tag.
+ */
+export function appointmentsByTime(list, hourlyDay = null) {
+  let slots;
+  if (hourlyDay) {
+    slots = Array.from({ length: 1440 }, (_, m) => ({ date: minuteKey(hourlyDay, m), total: 0, paid: 0 }));
+    for (const a of list || []) {
+      if (dayKey(a.at) !== hourlyDay) continue;
+      const m = minuteOf(a.at);
+      if (m == null) continue;
+      slots[m].total += 1;
+      if (a.sourceType === 'paid') slots[m].paid += 1;
+    }
+  } else {
+    const days = new Map();
+    for (const a of list || []) {
+      const day = dayKey(a.at);
+      if (!day) continue;
+      if (!days.has(day)) days.set(day, { date: day, total: 0, paid: 0 });
+      const e = days.get(day);
+      e.total += 1;
+      if (a.sourceType === 'paid') e.paid += 1;
+    }
+    slots = [...days.values()].sort((x, y) => (x.date < y.date ? -1 : 1));
+  }
+  let total = 0;
+  let paid = 0;
+  const cumulative = slots.map((s) => ({ date: s.date, total: (total += s.total), paid: (paid += s.paid) }));
+  // Minutenreihe: kumulierte Linie nur rund um die Buchungen (30 Min. davor bis
+  // 30 Min. nach der letzten), sonst liegt sie stundenlang flach und staucht
+  // den Anstieg.
+  if (!hourlyDay) return { perSlot: slots, cumulative };
+  const first = slots.findIndex((s) => s.total > 0);
+  if (first < 0) return { perSlot: slots, cumulative };
+  let last = slots.length - 1;
+  while (last > first && slots[last].total === 0) last -= 1;
+  return { perSlot: slots, cumulative: cumulative.slice(Math.max(0, first - 30), Math.min(slots.length, last + 31)) };
+}

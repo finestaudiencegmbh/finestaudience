@@ -14,8 +14,8 @@ export const DEFAULT_PROJECT = {
   subtitle: 'Lead-Dashboard',
   slug: 'dashboard',
   branding: { accent: '#7aa2f7', logo: '/logo.svg' }, // neutraler Fallback, falls die Config kein Branding setzt
-  features: { hasTickets: true, hasQuality: true },
-  labels: { ticket: { one: 'Ticket', many: 'Tickets', short: 'Ticket' } },
+  features: { hasTickets: true, hasQuality: true, hasAppointments: false },
+  labels: { ticket: { one: 'Ticket', many: 'Tickets', short: 'Ticket' }, appointment: { one: 'Termin', many: 'Termine' } },
   answers: {},
 };
 
@@ -110,7 +110,10 @@ export function ProjectProvider({ project, children }) {
       ...p,
       branding: { ...DEFAULT_PROJECT.branding, ...(p.branding || {}) },
       features: { ...DEFAULT_PROJECT.features, ...(p.features || {}) },
-      labels: { ticket: { ...DEFAULT_PROJECT.labels.ticket, ...((p.labels || {}).ticket || {}) } },
+      labels: {
+        ticket: { ...DEFAULT_PROJECT.labels.ticket, ...((p.labels || {}).ticket || {}) },
+        appointment: { ...DEFAULT_PROJECT.labels.appointment, ...((p.labels || {}).appointment || {}) },
+      },
       answers: p.answers || {},
     };
   }, [project]);

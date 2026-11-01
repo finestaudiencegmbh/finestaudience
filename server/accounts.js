@@ -137,3 +137,42 @@ export function combineByAccount(meta, leads, opts = {}) {
 
   return { ...out, totals, daily: overall.daily, intradayDay: opts.hourlyDay || null, unassigned };
 }
+
+/**
+ * Termine (Termin-Tab) an die Kampagnen-Hierarchie hängen: `appointments` und
+ * `cpa` (Spend ÷ Termine) je Kampagne, Anzeigengruppe und Anzeige. Zuordnung
+ * zum Konto wie bei Leads (Ad-ID, sonst eindeutiger Name). Ändert nur die
+ * Termin-Felder, alle anderen Kennzahlen bleiben unberührt.
+ *
+ * @returns {{ unassigned: number }} Termine mit Namen, die in mehreren Konten vorkommen
+ */
+export function attachAppointments(hierarchy, byAccount, appointments) {
+  const idx = pathIndex(byAccount || []);
+  const counts = new Map();
+  const ck = (account, dim, parts) => `${account || ''}|${dim}|${pathKey(dim, parts)}`;
+  let unassigned = 0;
+  for (const a of appointments || []) {
+    if (a.sourceType !== 'paid') continue;
+    const acc = (byAccount || []).length ? accountOf(a, idx) : '';
+    if (acc === AMBIGUOUS) { unassigned += 1; continue; }
+    if (acc == null) continue; // Kampagne in keinem Konto bekannt (z. B. außerhalb des Bereichs)
+    for (const dim of LEVELS) {
+      const leaf = dim === 'campaign' ? a.campaign : dim === 'adset' ? a.adset : a.creative;
+      if (!normKey(leaf)) continue;
+      const k = ck(acc, dim, a);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+  }
+  const put = (node, account, dim, parts) => {
+    node.appointments = counts.get(ck(account, dim, parts)) || 0;
+    node.cpa = node.appointments ? Math.round((node.spend / node.appointments) * 100) / 100 : null;
+  };
+  for (const c of hierarchy || []) {
+    put(c, c.account, 'campaign', { campaign: c.name });
+    for (const s of c.adsets || []) {
+      put(s, c.account, 'adset', { campaign: c.name, adset: s.name });
+      for (const ad of s.ads || []) put(ad, c.account, 'creative', { campaign: c.name, adset: s.name, creative: ad.name });
+    }
+  }
+  return { unassigned };
+}

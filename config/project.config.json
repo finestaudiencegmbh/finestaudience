@@ -18,11 +18,12 @@
     "landingPages": ["secretbusiness.live"],
     "campaignNames": []
   },
-  "_comment_features": "hasTickets: zweite Conversion-Stufe (hier: die ausgefüllte VIP-Umfrage = VIP-Ticket) vorhanden? false = alle Ticket-KPIs verschwinden. hasQuality: Fragebogen + Lead-Scoring vorhanden? false = Quali-Rate, Ø Quali, Tiers, Antworten-Details und Quali-Filter verschwinden. hasQuality setzt hasTickets voraus – die Fragebogen-Antworten stecken im Umfrage-Tab des Sheets.",
-  "features": { "hasTickets": true, "hasQuality": true },
+  "_comment_features": "hasTickets: zweite Conversion-Stufe (hier: die ausgefüllte VIP-Umfrage = VIP-Ticket) vorhanden? false = alle Ticket-KPIs verschwinden. hasQuality: Fragebogen + Lead-Scoring vorhanden? false = Quali-Rate, Ø Quali, Tiers, Antworten-Details und Quali-Filter verschwinden. hasQuality setzt hasTickets voraus – die Fragebogen-Antworten stecken im Umfrage-Tab des Sheets. hasAppointments: Termin-Tab vorhanden (erkannt an der Spalte 'Datum Call')? true = Termine-Panel im Dashboard, Termine je Kampagne/Anzeige und Termin-Quellen. Termine verändern keine Lead-, Ticket- oder Spend-Zahl.",
+  "features": { "hasTickets": true, "hasQuality": true, "hasAppointments": true },
   "_comment_labels": "Wie die zweite Stufe im Dashboard heißt. one = Einzahl, many = Mehrzahl, short = Kürzel für Badges/Tabellenspalten.",
   "labels": {
-    "ticket": { "one": "VIP-Ticket", "many": "VIP-Tickets", "short": "VIP" }
+    "ticket": { "one": "VIP-Ticket", "many": "VIP-Tickets", "short": "VIP" },
+    "appointment": { "one": "Termin", "many": "Termine" }
   },
   "_comment_sheet": "Spalten-Mapping des Google Sheets. Alle Werte werden normalisiert verglichen (klein, ohne ? : . und ohne Mehrfach-Leerzeichen) – 'Monatliches Einkommen?' trifft also 'monatliches einkommen'. Mehrere Einträge je Feld = Fallback-Reihenfolge.",
   "sheet": {
@@ -40,6 +41,9 @@
       ],
       "leads": [
         { "all": ["eingetragen am"], "some": ["utm_source", "e-mail"] }
+      ],
+      "appointments": [
+        { "all": ["datum call"] }
       ]
     },
     "columns": {
@@ -69,6 +73,20 @@
         "utmTerm": ["utm_term"],
         "utmContent": ["utm_content"],
         "adId": ["ad_id", "h_ad_id", "cmc_adid"]
+      },
+      "appointments": {
+        "date": ["datum"],
+        "name": ["name"],
+        "email": ["e-mail"],
+        "phone": ["telefonnummer"],
+        "callDate": ["datum call"],
+        "closer": ["closer", "datum closer"],
+        "utmSource": ["utm_source"],
+        "utmMedium": ["utm_medium"],
+        "utmCampaign": ["utm_campaign"],
+        "utmTerm": ["utm_term"],
+        "utmContent": ["utm_content"],
+        "adId": ["ad_id"]
       },
       "overview": {
         "status": ["status"],

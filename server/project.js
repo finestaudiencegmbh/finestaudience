@@ -19,8 +19,8 @@ export const DEFAULT_PROJECT = {
   subtitle: 'Lead-Dashboard',
   slug: 'dashboard',
   branding: { accent: '#7aa2f7', logo: '/logo.svg' }, // neutraler Fallback, falls die Config kein Branding setzt
-  features: { hasTickets: true, hasQuality: true },
-  labels: { ticket: { one: 'Ticket', many: 'Tickets', short: 'Ticket' } },
+  features: { hasTickets: true, hasQuality: true, hasAppointments: false },
+  labels: { ticket: { one: 'Ticket', many: 'Tickets', short: 'Ticket' }, appointment: { one: 'Termin', many: 'Termine' } },
   sheet: { ...DEFAULT_SHEET_CONFIG, utmRoles: DEFAULT_UTM_ROLES },
 };
 
@@ -48,6 +48,7 @@ function normalize(raw) {
     features: { ...DEFAULT_PROJECT.features, ...(raw.features || {}) },
     labels: {
       ticket: { ...DEFAULT_PROJECT.labels.ticket, ...((raw.labels || {}).ticket || {}) },
+      appointment: { ...DEFAULT_PROJECT.labels.appointment, ...((raw.labels || {}).appointment || {}) },
     },
     sheet: {
       utmRoles: { ...DEFAULT_UTM_ROLES, ...(sheet.utmRoles || {}) },
@@ -56,12 +57,14 @@ function normalize(raw) {
         leads: { ...DEFAULT_SHEET_CONFIG.columns.leads, ...((sheet.columns || {}).leads || {}) },
         tickets: { ...DEFAULT_SHEET_CONFIG.columns.tickets, ...((sheet.columns || {}).tickets || {}) },
         overview: { ...DEFAULT_SHEET_CONFIG.columns.overview, ...((sheet.columns || {}).overview || {}) },
+        appointments: { ...DEFAULT_SHEET_CONFIG.columns.appointments, ...((sheet.columns || {}).appointments || {}) },
       },
       answers: sheet.answers || DEFAULT_SHEET_CONFIG.answers,
     },
   };
   cfg.features.hasTickets = Boolean(cfg.features.hasTickets);
   cfg.features.hasQuality = Boolean(cfg.features.hasQuality);
+  cfg.features.hasAppointments = Boolean(cfg.features.hasAppointments);
   // Der Fragebogen hängt am Ticket-/Antworten-Tab des Sheets. Ohne Tickets gibt
   // es keine Antwortzeilen – also auch kein Scoring.
   if (!cfg.features.hasTickets && cfg.features.hasQuality) {

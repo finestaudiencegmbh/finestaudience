@@ -521,6 +521,9 @@ body {
 
 /* ---- Date Range Picker (Meta-Style) ---- */
 .kpi-quality-chart { margin-top: 16px; }
+/* Termine: Quellen-Balken mit Namen statt Tier-Buchstaben, Verlauf darunter */
+.dist-key.appt-key { width: 78px; flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appt-charts { margin-top: 16px; }
 
 .dp { position: relative; }
 .dp-trigger { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 1px solid var(--line-strong); background: rgba(255,255,255,0.04); color: var(--ink); padding: 9px 16px; border-radius: 980px; font-size: 14px; font-weight: 500; letter-spacing: -0.01em; transition: background .15s ease, border-color .15s ease; }
@@ -608,6 +611,8 @@ body {
 .donut-leg-name { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .donut-leg-val { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
 
+.sources-section-head { margin: 6px 2px 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.sources-grid + .sources-section-head { margin-top: 26px; }
 .rank-list { display: flex; flex-direction: column; gap: 13px; }
 .rank-row { display: flex; flex-direction: column; gap: 6px; }
 .rank-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }

@@ -89,12 +89,121 @@ function isPaid(utm, paidAdsets, patterns, roles, paidMediums = []) {
   return false;
 }
 
+/** Telefonnummer -> Vergleichsschlüssel (letzte 9 Ziffern, Vorwahl-Schreibweise egal). */
+const phoneKey = (s) => {
+  const d = String(s ?? '').replace(/\D/g, '');
+  return d.length >= 7 ? d.slice(-9) : '';
+};
+
+const hasUtm = (utm) => Boolean(utm && (utm.source || utm.medium || utm.campaign || utm.content));
+
+/**
+ * Quelle eines Termins für den Quellen-Tab: Gruppe (Meta Ads, E-Mail,
+ * Affiliate, …) und Unterquelle (Kampagne, Mail, Kanal).
+ */
+function appointmentSource(a) {
+  if (a.sourceType === 'paid') return { group: 'Meta Ads', detail: a.campaign };
+  const u = a.utm;
+  if (!hasUtm(u)) return { group: 'Ohne UTM', detail: 'keine Zuordnung' };
+  const src = collapse(u.source).toLowerCase();
+  const med = collapse(u.medium).toLowerCase();
+  const detail = collapse(u.content) || collapse(u.medium) || collapse(u.campaign) || '(ohne Angabe)';
+  if (med === 'affiliate' || src === 'affiliate') return { group: 'Affiliate', detail };
+  if (/mail/.test(src) || /mail/.test(med)) return { group: 'E-Mail', detail };
+  if (/manychat/.test(`${src} ${med}`)) return { group: 'ManyChat', detail };
+  return { group: titleCase(collapse(u.source) || collapse(u.medium)), detail };
+}
+
+/**
+ * Termine aus dem Termin-Tab: eigene Datensätze, die KEINE Lead-, Ticket- oder
+ * Spend-Zahl verändern. Je Person zählt EIN Termin (Umbuchungen und doppelte
+ * Buchungen werden über E-Mail ODER Telefonnummer zusammengefasst), `bookings`
+ * hält die Anzahl der Buchungen.
+ *
+ * Fehlen die UTMs (andere E-Mail bei der Buchung als beim Opt-in), wird die
+ * Person über die E-Mail im Lead-Tab oder die Telefonnummer im Fragebogen
+ * gesucht und deren Attribution übernommen (matchedBy). Sonst: "Ohne UTM".
+ */
+function buildAppointments(rows, { leads, tickets, dimsFor }) {
+  if (!rows?.length) return [];
+  // Personen bündeln (Union-Find über E-Mail und Telefon)
+  const parent = rows.map((_, i) => i);
+  const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  const firstBy = new Map();
+  rows.forEach((r, i) => {
+    for (const k of [r.email && `e:${r.email}`, phoneKey(r.phone) && `p:${phoneKey(r.phone)}`]) {
+      if (!k) continue;
+      if (firstBy.has(k)) parent[find(i)] = find(firstBy.get(k));
+      else firstBy.set(k, i);
+    }
+  });
+  const groups = new Map();
+  rows.forEach((r, i) => {
+    const g = find(i);
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(r);
+  });
+
+  const leadByEmail = new Map();
+  for (const l of leads || []) if (l.email && !leadByEmail.has(l.email)) leadByEmail.set(l.email, l);
+  const ticketByPhone = new Map();
+  for (const t of tickets || []) {
+    const k = phoneKey(t.phone);
+    if (k && !ticketByPhone.has(k)) ticketByPhone.set(k, t);
+  }
+
+  const out = [];
+  for (const list of groups.values()) {
+    list.sort((x, y) => (x.at < y.at ? -1 : 1));
+    // Attribution aus der ersten Buchung MIT UTM/Ad-ID, Zeitpunkt = erste Buchung
+    const rep = list.find((r) => r.adId || hasUtm(r.utm)) || list[0];
+    let utm = rep.utm;
+    let adId = rep.adId;
+    let matchedBy = null;
+    if (!adId && !hasUtm(utm)) {
+      for (const r of list) {
+        const l = r.email && leadByEmail.get(r.email);
+        if (l && (l.adId || hasUtm(l.utm))) { utm = l.utm; adId = l.adId; matchedBy = 'lead-email'; break; }
+        const t = phoneKey(r.phone) && ticketByPhone.get(phoneKey(r.phone));
+        if (t && (t.adId || hasUtm(t.utm))) { utm = t.utm; adId = t.adId; matchedBy = 'survey-phone'; break; }
+      }
+    }
+    const d = dimsFor(utm, adId);
+    const a = {
+      at: list[0].at,
+      callAt: rep.callAt || null,
+      name: rep.name || '(ohne Name)',
+      email: rep.email,
+      bookings: list.length,
+      sourceType: d.paid ? 'paid' : 'organic',
+      campaign: d.campaign,
+      adset: d.adset,
+      creative: d.creative,
+      adId: adId || '',
+      utm: { ...utm },
+      matchedBy,
+    };
+    out.push(a);
+  }
+  return out.sort((x, y) => (x.at < y.at ? -1 : 1));
+}
+
+/** Quelle (Gruppe/Unterquelle) setzen – nach resolveAdIds erneut aufrufen. */
+export function labelAppointmentSources(appointments) {
+  for (const a of appointments || []) {
+    const s = appointmentSource(a);
+    a.sourceGroup = s.group;
+    a.sourceDetail = s.detail;
+  }
+  return appointments;
+}
+
 /**
  * Führt Leads, VIP-Tickets und Adspend-Übersicht zu einem einheitlichen
  * Datensatz zusammen. Join über die E-Mail-Adresse.
  */
-export function buildDataset({ leads, tickets, overview }, cfg, features = {}, utmRoles = DEFAULT_UTM_ROLES) {
-  const { hasTickets = true, hasQuality = true } = features;
+export function buildDataset({ leads, tickets, overview, appointments: appointmentRows = [] }, cfg, features = {}, utmRoles = DEFAULT_UTM_ROLES) {
+  const { hasTickets = true, hasQuality = true, hasAppointments = false } = features;
   const roles = { ...DEFAULT_UTM_ROLES, ...(utmRoles || {}) };
   const warnings = [];
   const paidAdsets = new Set(overview.map((o) => o.adset.toLowerCase()));
@@ -249,8 +358,14 @@ export function buildDataset({ leads, tickets, overview }, cfg, features = {}, u
     }
   }
 
+  // Termine: eigener Strang, unabhängig von Leads/Tickets (siehe buildAppointments)
+  const appointments = hasAppointments
+    ? labelAppointmentSources(buildAppointments(appointmentRows, { leads, tickets, dimsFor }))
+    : [];
+
   return {
     leads: records,
+    appointments,
     overview,
     overviewByAdset: Object.fromEntries(overviewByAdset),
     warnings,
@@ -259,6 +374,8 @@ export function buildDataset({ leads, tickets, overview }, cfg, features = {}, u
       paidLeads: records.filter((r) => r.isLead && r.sourceType === 'paid').length,
       tickets: records.filter((r) => r.hasTicket).length,
       scored: records.filter((r) => r.hasTicket && r.quality).length,
+      appointments: appointments.length,
+      appointmentBookings: appointments.reduce((n, a) => n + a.bookings, 0),
     },
   };
 }
