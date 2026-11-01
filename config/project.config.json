@@ -18,16 +18,19 @@
     "logo": "/logo.png",
     "loaderMark": "/fa-mark.png"
   },
-  "_comment_scope": "Projekt-Bereich: Welche Meta-Kampagnen zählen zu diesem Dashboard? landingPages = Teilstrings der Ziel-URL der Anzeigen; eine Kampagne gehört dazu, wenn mindestens eine Anzeige auf eine passende LP verlinkt. campaignNames = optional zusätzlich Teilstrings im Kampagnennamen. Alles andere zählt NICHT in Adspend, CPL und Graphen und steht eingeklappt unter 'Nicht im Dashboard'. Beide leer = alle Kampagnen der verbundenen Werbekonten zählen. Finest: Funnels 'Landingpage-Vorlagen' (Freebie) und 'Neukunden-VSL'. Domains eintragen, sobald die Funnels live sind.",
+  "_comment_scope": "Projekt-Bereich: Welche Meta-Kampagnen zählen zu diesem Dashboard? landingPages = Teilstrings der Ziel-URL der Anzeigen; eine Kampagne gehört dazu, wenn mindestens eine Anzeige auf eine passende LP verlinkt. campaignNames = optional zusätzlich Teilstrings im Kampagnennamen. Alles andere zählt NICHT in Adspend, CPL und Graphen und steht eingeklappt unter 'Nicht im Dashboard'. Beide leer = alle Kampagnen zählen. Finest: Neukunden-VSL (finest-audience.com/neukunden) und Landingpage-Vorlagen (finest-audience.com/landingpage-vorlage).",
   "scope": {
-    "landingPages": [],
+    "landingPages": [
+      "finest-audience.com/neukunden",
+      "finest-audience.com/landingpage-vorlage"
+    ],
     "campaignNames": []
   },
-  "_comment_features": "hasTickets: zweite Conversion-Stufe nach dem Lead (Ticket, Umfrage, Bewerbung) vorhanden? false = alle Ticket-KPIs verschwinden. hasQuality: Fragebogen + Lead-Scoring vorhanden? false = Quali-Rate, Tiers, Antworten-Details und Quali-Filter verschwinden; setzt hasTickets voraus. hasAppointments: Termin-Tab vorhanden (erkannt an der Spalte 'Datum Call')? true = Termine-Panel. Finest startet als reines Lead-Dashboard (Freebie + VSL), Termine werden eingeschaltet, sobald der VSL-Funnel einen Termin-Tab im Sheet hat.",
+  "_comment_features": "hasTickets: zweite Conversion-Stufe nach dem Lead mit eigenem Tab? hasQuality: Fragebogen + Lead-Scoring (setzt hasTickets voraus). hasAppointments: Termin-Tab vorhanden? Finest: Leads aus 'VSL Leads' und 'Funnel Vorlagen Leads', Termine = Tab 'Setting Calls'. Termine verändern keine Lead- oder Spend-Zahl.",
   "features": {
     "hasTickets": false,
     "hasQuality": false,
-    "hasAppointments": false
+    "hasAppointments": true
   },
   "_comment_labels": "Wie die zweite Stufe im Dashboard heißt. one = Einzahl, many = Mehrzahl, short = Kürzel für Badges/Tabellenspalten.",
   "labels": {
@@ -37,20 +40,20 @@
       "short": "Bew."
     },
     "appointment": {
-      "one": "Termin",
-      "many": "Termine"
+      "one": "Setting Call",
+      "many": "Setting Calls"
     }
   },
   "_comment_sheet": "Spalten-Mapping des Google Sheets. Alle Werte werden normalisiert verglichen (klein, ohne ? : . und ohne Mehrfach-Leerzeichen) – 'Monatliches Einkommen?' trifft also 'monatliches einkommen'. Mehrere Einträge je Feld = Fallback-Reihenfolge.",
   "sheet": {
-    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Hängt am URL-Schema des Werbekontos. Erlaubte Werte: source, medium, campaign, term, content – oder null, wenn die Dimension nicht getrackt wird. Übernommenes Schema (Hyros), bei Anbindung des Finest-Sheets prüfen: utm_source={{adset.name}}, utm_medium={{ad.name}}, utm_campaign={{campaign.name}}, utm_term={{placement}}, dazu ad_id={{ad.id}}. Steht eine Ad-ID in der Zeile, gewinnt sie: Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta (server/adid.js), die UTM-Namen sind nur noch Fallback.",
+    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Erlaubte Werte: source, medium, campaign, term, content oder null. Finest: Standard-Schema utm_campaign={{campaign.name}}, utm_term={{adset.name}}, utm_content={{ad.name}}, Placement wird nicht getrackt. Mit Jan abgleichen, sobald der URL-Parameter-String der Meta-Anzeigen feststeht. Steht eine Ad-ID in der Zeile, gewinnt sie: Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta.",
     "utmRoles": {
       "campaign": "campaign",
-      "adset": "source",
-      "creative": "medium",
-      "placement": "term"
+      "adset": "term",
+      "creative": "content",
+      "placement": null
     },
-    "_comment_detect": "Tabellen-Erkennung an der Kopfzeile (Tab-Namen sind egal, jeder Funnel darf also eigene Tabs bekommen). Je Typ eine Liste von Regeln; eine Regel trifft, wenn ALLE 'all'-Spalten vorhanden sind UND (ohne 'some') oder mindestens eine 'some'-Spalte vorhanden ist. Reihenfolge: overview, tickets, leads, appointments. Abgeschaltete Features (tickets, appointments) werden gar nicht gesucht.",
+    "_comment_detect": "Tabellen-Erkennung an der Kopfzeile (Tab-Namen sind egal). Eine Regel trifft, wenn ALLE 'all'-Spalten vorhanden sind UND (ohne 'some') mindestens eine 'some'-Spalte. Finest: Lead-Tabs ('VSL Leads', 'Funnel Vorlagen Leads') haben als einzige die Spalte 'Funnel'; Termine = 'Setting Calls' (Spalte 'Datum Setting Call'). 'Closing Calls', 'Closings', 'Funnels' und 'Produkte' treffen keine Regel.",
     "detect": {
       "overview": [
         {
@@ -75,18 +78,16 @@
       "leads": [
         {
           "all": [
-            "eingetragen am"
-          ],
-          "some": [
-            "utm_source",
-            "e-mail"
+            "datum",
+            "e-mail",
+            "funnel"
           ]
         }
       ],
       "appointments": [
         {
           "all": [
-            "datum call"
+            "datum setting call"
           ]
         }
       ]
@@ -94,9 +95,10 @@
     "columns": {
       "leads": {
         "date": [
-          "eingetragen am"
+          "datum"
         ],
         "firstName": [
+          "name",
           "vorname"
         ],
         "lastName": [
@@ -107,22 +109,28 @@
         ],
         "ticketDate": [],
         "utmSource": [
+          "utm source",
           "utm_source"
         ],
         "utmMedium": [
+          "utm medium",
           "utm_medium"
         ],
         "utmCampaign": [
+          "utm campaign",
           "utm_campaign"
         ],
         "utmTerm": [
+          "utm term",
           "utm_term"
         ],
         "utmContent": [
+          "utm content",
           "utm_content"
         ],
         "adId": [
           "ad_id",
+          "ad id",
           "h_ad_id",
           "cmc_adid"
         ]
@@ -171,38 +179,47 @@
           "datum"
         ],
         "name": [
+          "vorname",
           "name"
         ],
         "email": [
           "e-mail"
         ],
         "phone": [
+          "telefon",
           "telefonnummer"
         ],
         "callDate": [
-          "datum call"
+          "datum setting call"
         ],
         "closer": [
-          "closer",
-          "datum closer"
+          "name setter"
         ],
         "utmSource": [
+          "utm source",
           "utm_source"
         ],
         "utmMedium": [
+          "utm medium",
           "utm_medium"
         ],
         "utmCampaign": [
+          "utm campaign",
           "utm_campaign"
         ],
         "utmTerm": [
+          "utm term",
           "utm_term"
         ],
         "utmContent": [
+          "utm content",
           "utm_content"
         ],
         "adId": [
-          "ad_id"
+          "ad_id",
+          "ad id",
+          "h_ad_id",
+          "cmc_adid"
         ]
       },
       "overview": {
