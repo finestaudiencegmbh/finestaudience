@@ -1,124 +1,253 @@
 {
   "_comment": "Zentrale Projekt-Konfiguration. Alles, was sich von Workshop zu Workshop ändert, steht HIER – nicht im Code. Siehe TEMPLATE.md für die Onboarding-Anleitung. Ergänzend: scoring.json (Bewertungsmodell) und campaigns.json (Lead-Kampagnen-Erkennung).",
-  "name": "Secret Creators",
-  "shortName": "Secret Creators",
-  "_comment_name": "name = Projekt (Topbar, Browser-Titel, Login, Chatbot). shortName = Sidebar. subtitle = Zeile darunter, hier die Dachmarke für alle Projekte. event = optionale dritte Zeile für das konkrete Event, leer = ausgeblendet.",
-  "subtitle": "Tracking Dashboard J&P",
+  "name": "Finest Audience",
+  "shortName": "Finest Audience",
+  "_comment_name": "name = Projekt (Topbar, Browser-Titel, Login, Chatbot). shortName = Sidebar. subtitle = Zeile darunter. event = optionale dritte Zeile, leer = ausgeblendet.",
+  "subtitle": "Tracking Dashboard",
   "event": "",
-  "slug": "secret-creators",
-  "_comment_branding": "accent = Akzentfarbe (Hex), daraus werden Hover-, Glow- und Linien-Töne abgeleitet. gradient = optionale Farbstopps für Buttons, aktive Tabs und Navigation (sonst hell -> Akzent -> dunkel aus accent). background = Grundton des Dashboards, Panels/Sidebar/Topbar leiten sich davon ab. Die Textfarbe auf Akzentflächen (hell/dunkel) wird automatisch gewählt. logo = Pfad im Ordner web/public. Secret Creators: Juicy #D51B35 als Akzent, Verlauf Feminine #FF5656 -> Juicy -> Bold #551528, Premium-Schwarz als Hintergrund. Logo = goldenes S-Signet (transparent, 256 px).",
+  "slug": "finest-audience",
+  "_comment_branding": "accent = Akzentfarbe (Hex), daraus werden Hover-, Glow- und Linien-Töne abgeleitet. gradient = optionale Farbstopps für Buttons, aktive Tabs und Navigation (sonst hell -> Akzent -> dunkel aus accent). background = Grundton des Dashboards, Panels/Sidebar/Topbar leiten sich davon ab. Die Textfarbe auf Akzentflächen wird automatisch gewählt. logo = Pfad im Ordner web/public, loaderMark = Signet im Ladescreen. Finest Audience: Lila #61409d als Akzent, Verlauf hell -> Akzent -> dunkel, Schwarz als Hintergrund. Logo = FA-Signet auf dunkler Kachel, im Ladescreen das freigestellte weiße Signet.",
   "branding": {
-    "accent": "#d51b35",
-    "gradient": ["#ff5656", "#d51b35", "#551528"],
+    "accent": "#61409d",
+    "gradient": [
+      "#9479c9",
+      "#61409d",
+      "#2f1f4e"
+    ],
     "background": "#0a0a0a",
-    "logo": "/logo.png"
+    "logo": "/logo.png",
+    "loaderMark": "/fa-mark.png"
   },
-  "_comment_scope": "Projekt-Bereich: Welche Meta-Kampagnen zählen zu diesem Dashboard? landingPages = Teilstrings der Ziel-URL der Anzeigen; eine Kampagne gehört dazu, wenn mindestens eine Anzeige auf eine passende LP verlinkt. campaignNames = optional zusätzlich Teilstrings im Kampagnennamen. Alles andere (z. B. VSL-Kampagnen auf secretcreators.de) zählt NICHT in Adspend, CPL, Kosten/Ticket und Graphen und steht eingeklappt unter 'Nicht im Webinar'. Beide leer = alle Kampagnen zählen.",
+  "_comment_scope": "Projekt-Bereich: Welche Meta-Kampagnen zählen zu diesem Dashboard? landingPages = Teilstrings der Ziel-URL der Anzeigen; eine Kampagne gehört dazu, wenn mindestens eine Anzeige auf eine passende LP verlinkt. campaignNames = optional zusätzlich Teilstrings im Kampagnennamen. Alles andere zählt NICHT in Adspend, CPL und Graphen und steht eingeklappt unter 'Nicht im Dashboard'. Beide leer = alle Kampagnen der verbundenen Werbekonten zählen. Finest: Funnels 'Landingpage-Vorlagen' (Freebie) und 'Neukunden-VSL'. Domains eintragen, sobald die Funnels live sind.",
   "scope": {
-    "landingPages": ["secretbusiness.live"],
+    "landingPages": [],
     "campaignNames": []
   },
-  "_comment_features": "hasTickets: zweite Conversion-Stufe (hier: die ausgefüllte VIP-Umfrage = VIP-Ticket) vorhanden? false = alle Ticket-KPIs verschwinden. hasQuality: Fragebogen + Lead-Scoring vorhanden? false = Quali-Rate, Ø Quali, Tiers, Antworten-Details und Quali-Filter verschwinden. hasQuality setzt hasTickets voraus – die Fragebogen-Antworten stecken im Umfrage-Tab des Sheets. hasAppointments: Termin-Tab vorhanden (erkannt an der Spalte 'Datum Call')? true = Termine-Panel im Dashboard, Termine je Kampagne/Anzeige und Termin-Quellen. Termine verändern keine Lead-, Ticket- oder Spend-Zahl.",
-  "features": { "hasTickets": true, "hasQuality": true, "hasAppointments": true },
+  "_comment_features": "hasTickets: zweite Conversion-Stufe nach dem Lead (Ticket, Umfrage, Bewerbung) vorhanden? false = alle Ticket-KPIs verschwinden. hasQuality: Fragebogen + Lead-Scoring vorhanden? false = Quali-Rate, Tiers, Antworten-Details und Quali-Filter verschwinden; setzt hasTickets voraus. hasAppointments: Termin-Tab vorhanden (erkannt an der Spalte 'Datum Call')? true = Termine-Panel. Finest startet als reines Lead-Dashboard (Freebie + VSL), Termine werden eingeschaltet, sobald der VSL-Funnel einen Termin-Tab im Sheet hat.",
+  "features": {
+    "hasTickets": false,
+    "hasQuality": false,
+    "hasAppointments": false
+  },
   "_comment_labels": "Wie die zweite Stufe im Dashboard heißt. one = Einzahl, many = Mehrzahl, short = Kürzel für Badges/Tabellenspalten.",
   "labels": {
-    "ticket": { "one": "VIP-Ticket", "many": "VIP-Tickets", "short": "VIP" },
-    "appointment": { "one": "Termin", "many": "Termine" }
+    "ticket": {
+      "one": "Bewerbung",
+      "many": "Bewerbungen",
+      "short": "Bew."
+    },
+    "appointment": {
+      "one": "Termin",
+      "many": "Termine"
+    }
   },
   "_comment_sheet": "Spalten-Mapping des Google Sheets. Alle Werte werden normalisiert verglichen (klein, ohne ? : . und ohne Mehrfach-Leerzeichen) – 'Monatliches Einkommen?' trifft also 'monatliches einkommen'. Mehrere Einträge je Feld = Fallback-Reihenfolge.",
   "sheet": {
-    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Hängt am URL-Schema des Werbekontos. Erlaubte Werte: source, medium, campaign, term, content – oder null, wenn die Dimension nicht getrackt wird. SCHEMA dieses Kontos (Hyros): utm_source={{adset.name}}, utm_medium={{ad.name}}, utm_campaign={{campaign.name}}, utm_term={{placement}}, dazu ad_id={{ad.id}}. Steht eine Ad-ID in der Zeile, gewinnt sie: Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta (server/adid.js), die UTM-Namen sind nur noch Fallback.",
-    "utmRoles": { "campaign": "campaign", "adset": "source", "creative": "medium", "placement": "term" },
-    "_comment_detect": "Tabellen-Erkennung an der Kopfzeile (Tab-Namen sind egal, ein neues Webinar darf also eigene Tabs bekommen). Je Typ eine Liste von Regeln; eine Regel trifft, wenn ALLE 'all'-Spalten vorhanden sind UND (ohne 'some') oder mindestens eine 'some'-Spalte vorhanden ist. Reihenfolge: overview, tickets, leads – der Umfrage-Tab muss VOR dem Lead-Tab greifen, weil beide 'Eingetragen am' + UTM-Spalten haben. Der Funnel-Tab (Seite/URL/Tracking) trifft keine Regel.",
+    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Hängt am URL-Schema des Werbekontos. Erlaubte Werte: source, medium, campaign, term, content – oder null, wenn die Dimension nicht getrackt wird. Übernommenes Schema (Hyros), bei Anbindung des Finest-Sheets prüfen: utm_source={{adset.name}}, utm_medium={{ad.name}}, utm_campaign={{campaign.name}}, utm_term={{placement}}, dazu ad_id={{ad.id}}. Steht eine Ad-ID in der Zeile, gewinnt sie: Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta (server/adid.js), die UTM-Namen sind nur noch Fallback.",
+    "utmRoles": {
+      "campaign": "campaign",
+      "adset": "source",
+      "creative": "medium",
+      "placement": "term"
+    },
+    "_comment_detect": "Tabellen-Erkennung an der Kopfzeile (Tab-Namen sind egal, jeder Funnel darf also eigene Tabs bekommen). Je Typ eine Liste von Regeln; eine Regel trifft, wenn ALLE 'all'-Spalten vorhanden sind UND (ohne 'some') oder mindestens eine 'some'-Spalte vorhanden ist. Reihenfolge: overview, tickets, leads, appointments. Abgeschaltete Features (tickets, appointments) werden gar nicht gesucht.",
     "detect": {
       "overview": [
-        { "all": ["anzeigengruppe", "adspend"] }
+        {
+          "all": [
+            "anzeigengruppe",
+            "adspend"
+          ]
+        }
       ],
       "tickets": [
         {
-          "some": ["wieso würdest du gern online geld verdienen", "was erhoffst du dir vom live-webinar", "monatliches einkommen"]
+          "all": [
+            "eingetragen am",
+            "telefonnummer"
+          ],
+          "some": [
+            "bewerbung",
+            "umfrage"
+          ]
         }
       ],
       "leads": [
-        { "all": ["eingetragen am"], "some": ["utm_source", "e-mail"] }
+        {
+          "all": [
+            "eingetragen am"
+          ],
+          "some": [
+            "utm_source",
+            "e-mail"
+          ]
+        }
       ],
       "appointments": [
-        { "all": ["datum call"] }
+        {
+          "all": [
+            "datum call"
+          ]
+        }
       ]
     },
     "columns": {
       "leads": {
-        "date": ["eingetragen am"],
-        "firstName": ["vorname"],
-        "lastName": ["nachname"],
-        "email": ["e-mail"],
+        "date": [
+          "eingetragen am"
+        ],
+        "firstName": [
+          "vorname"
+        ],
+        "lastName": [
+          "nachname"
+        ],
+        "email": [
+          "e-mail"
+        ],
         "ticketDate": [],
-        "utmSource": ["utm_source"],
-        "utmMedium": ["utm_medium"],
-        "utmCampaign": ["utm_campaign"],
-        "utmTerm": ["utm_term"],
-        "utmContent": ["utm_content"],
-        "adId": ["ad_id", "h_ad_id", "cmc_adid"]
+        "utmSource": [
+          "utm_source"
+        ],
+        "utmMedium": [
+          "utm_medium"
+        ],
+        "utmCampaign": [
+          "utm_campaign"
+        ],
+        "utmTerm": [
+          "utm_term"
+        ],
+        "utmContent": [
+          "utm_content"
+        ],
+        "adId": [
+          "ad_id",
+          "h_ad_id",
+          "cmc_adid"
+        ]
       },
       "tickets": {
-        "date": ["eingetragen am"],
-        "firstName": ["vorname"],
-        "lastName": ["nachname"],
-        "email": ["e-mail"],
+        "date": [
+          "eingetragen am"
+        ],
+        "firstName": [
+          "vorname"
+        ],
+        "lastName": [
+          "nachname"
+        ],
+        "email": [
+          "e-mail"
+        ],
         "emailAlt": [],
-        "phone": ["telefonnummer", "handynummer"],
-        "utmSource": ["utm_source"],
-        "utmMedium": ["utm_medium"],
-        "utmCampaign": ["utm_campaign"],
-        "utmTerm": ["utm_term"],
-        "utmContent": ["utm_content"],
-        "adId": ["ad_id", "h_ad_id", "cmc_adid"]
+        "phone": [
+          "telefonnummer",
+          "handynummer"
+        ],
+        "utmSource": [
+          "utm_source"
+        ],
+        "utmMedium": [
+          "utm_medium"
+        ],
+        "utmCampaign": [
+          "utm_campaign"
+        ],
+        "utmTerm": [
+          "utm_term"
+        ],
+        "utmContent": [
+          "utm_content"
+        ],
+        "adId": [
+          "ad_id",
+          "h_ad_id",
+          "cmc_adid"
+        ]
       },
       "appointments": {
-        "date": ["datum"],
-        "name": ["name"],
-        "email": ["e-mail"],
-        "phone": ["telefonnummer"],
-        "callDate": ["datum call"],
-        "closer": ["closer", "datum closer"],
-        "utmSource": ["utm_source"],
-        "utmMedium": ["utm_medium"],
-        "utmCampaign": ["utm_campaign"],
-        "utmTerm": ["utm_term"],
-        "utmContent": ["utm_content"],
-        "adId": ["ad_id"]
+        "date": [
+          "datum"
+        ],
+        "name": [
+          "name"
+        ],
+        "email": [
+          "e-mail"
+        ],
+        "phone": [
+          "telefonnummer"
+        ],
+        "callDate": [
+          "datum call"
+        ],
+        "closer": [
+          "closer",
+          "datum closer"
+        ],
+        "utmSource": [
+          "utm_source"
+        ],
+        "utmMedium": [
+          "utm_medium"
+        ],
+        "utmCampaign": [
+          "utm_campaign"
+        ],
+        "utmTerm": [
+          "utm_term"
+        ],
+        "utmContent": [
+          "utm_content"
+        ],
+        "adId": [
+          "ad_id"
+        ]
       },
       "overview": {
-        "status": ["status"],
-        "adset": ["anzeigengruppe"],
-        "adspend": ["adspend"],
-        "clicks": ["ausg klicks", "klicks"],
-        "cpc": ["cpc"],
-        "cvrOptin": ["cvr optin"],
-        "cvrTicket": ["cvr umfrage", "cvr ticket"],
-        "cpl": ["cpl"],
-        "leads": ["leads"],
-        "tickets": ["umfrage", "vip ticket"],
-        "ticketsQualified": ["qualifiziert"],
-        "ticketsUnqualified": ["nicht qualifiziert"]
+        "status": [
+          "status"
+        ],
+        "adset": [
+          "anzeigengruppe"
+        ],
+        "adspend": [
+          "adspend"
+        ],
+        "clicks": [
+          "ausg klicks",
+          "klicks"
+        ],
+        "cpc": [
+          "cpc"
+        ],
+        "cvrOptin": [
+          "cvr optin"
+        ],
+        "cvrTicket": [
+          "cvr umfrage",
+          "cvr ticket"
+        ],
+        "cpl": [
+          "cpl"
+        ],
+        "leads": [
+          "leads"
+        ],
+        "tickets": [
+          "umfrage",
+          "vip ticket"
+        ],
+        "ticketsQualified": [
+          "qualifiziert"
+        ],
+        "ticketsUnqualified": [
+          "nicht qualifiziert"
+        ]
       }
     },
-    "_comment_answers": "Fragebogen-Antworten aus dem Umfrage-Tab. Schlüssel = interner Name; welche davon in die Lead-Qualität einfließen, steuert scoring.json (weights). label = Anzeige im Lead-Detail und CSV. columns = Spaltenüberschriften im Sheet. filter: true = eigener Dropdown-Filter. wide: true = breite Darstellung im Lead-Detail (Freitext).",
-    "answers": {
-      "employment": { "label": "Berufsbezeichnung", "columns": ["berufsbezeichnung"], "filter": true },
-      "income": { "label": "Monatliches Einkommen", "columns": ["monatliches einkommen"], "filter": true },
-      "motivation": {
-        "label": "Warum online Geld verdienen",
-        "columns": ["wieso würdest du gern online geld verdienen"],
-        "wide": true
-      },
-      "goals": { "label": "Größte Ziele", "columns": ["was sind deine größten ziele"], "wide": true },
-      "lifeChange": {
-        "label": "Was sich im Leben ändern würde",
-        "columns": ["wie würde sich dein leben verändern, wenn du ortsunabhängig und online geld verdienst"],
-        "wide": true
-      },
-      "expectation": { "label": "Erwartung an das Live-Webinar", "columns": ["was erhoffst du dir vom live-webinar"], "wide": true }
-    }
+    "_comment_answers": "Fragebogen-Antworten (nur mit hasQuality). Schlüssel = interner Name; welche davon in die Lead-Qualität einfließen, steuert scoring.json. label = Anzeige im Lead-Detail und CSV. columns = Spaltenüberschriften im Sheet. filter: true = eigener Dropdown-Filter. wide: true = breite Darstellung (Freitext). Finest: noch kein Fragebogen.",
+    "answers": {}
   }
 }

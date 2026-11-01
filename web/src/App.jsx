@@ -275,7 +275,7 @@ export default function App() {
                   {fb.scope?.active && fb.scope.excluded.length > 0 && (
                     <details className="scope-out">
                       <summary>
-                        Nicht im Webinar: {fb.scope.excluded.length} Kampagnen · {fmtEur(fb.scope.excluded.reduce((sum, c) => sum + (c.spend || 0), 0))} Spend
+                        Nicht im Dashboard: {fb.scope.excluded.length} Kampagnen · {fmtEur(fb.scope.excluded.reduce((sum, c) => sum + (c.spend || 0), 0))} Spend
                         <span className="scope-hint">zählen nicht in Adspend, CPL und Graphen</span>
                       </summary>
                       <ul>

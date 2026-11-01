@@ -9,7 +9,7 @@ services:
     # legt der nächste Blueprint-Sync einen NEUEN Service an (neue URL, leere
     # Env-Vars) und der bestehende fällt aus dem Blueprint. Für ein neues
     # Projekt daher entweder von Anfang an setzen oder den Umzug bewusst machen.
-    name: secret-creators-dashboard
+    name: finest-audience-dashboard
     runtime: node
     plan: free
     # devDependencies (vite) werden für den Build gebraucht -> explizit mitinstallieren
@@ -23,8 +23,10 @@ services:
       - key: NPM_CONFIG_PRODUCTION
         value: "false"
       # --- Google Sheet (ID aus der Sheet-URL) ---
+      # Finest Audience Tracking-Sheet, in Render eintragen. Bewusst kein fester
+      # Wert hier, sonst überschreibt ein Blueprint-Sync den Eintrag in Render.
       - key: SPREADSHEET_ID
-        value: 1mrNTL18VUoYKREXgazVhlMjqDHP9UrtDsdXDS-vlwhE
+        sync: false
       - key: CACHE_TTL_SECONDS
         value: "900"
       # --- KI-Chatbot (optional) – Anthropic-API-Key ---

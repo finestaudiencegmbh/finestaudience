@@ -141,7 +141,7 @@ export function combineByAccount(meta, leads, opts = {}) {
 /**
  * Termine (Termin-Tab) an die Kampagnen-Hierarchie hängen: `appointments` je
  * Kampagne, Anzeigengruppe und Anzeige. Bewusst ohne Kosten/Termin: Termine
- * entstehen am Webinar-Tag, der Spend dafür über Wochen davor. Zuordnung
+ * entstehen oft Tage oder Wochen nach dem Spend, der sie ausgelöst hat. Zuordnung
  * zum Konto wie bei Leads (Ad-ID, sonst eindeutiger Name). Ändert nur die
  * Termin-Felder, alle anderen Kennzahlen bleiben unberührt.
  *
