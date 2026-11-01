@@ -13,7 +13,14 @@ import { loadScoringConfig } from './scoring.js';
 import { resolveAdIds } from './adid.js';
 import { combineByAccount, attachAppointments } from './accounts.js';
 
-const P = loadProjectConfig();
+// Feste Test-Basis, unabhängig vom aktuellen Projekt: Termin-Strang mit
+// Umfrage-Tab (Ticket-Stufe an), erkannt an der Einkommens-Spalte.
+const P0 = loadProjectConfig();
+const P = {
+  ...P0,
+  features: { ...P0.features, hasTickets: true },
+  sheet: { ...P0.sheet, detect: { ...P0.sheet.detect, tickets: [{ some: ['monatliches einkommen'] }] } },
+};
 const cfg = loadScoringConfig();
 const CAMP = 'JP | Live-Workshop 01.11. | ABO | TEST | 211026';
 const AS = 'JP | LP V4 | Broad | DACH | Video Stack #1';

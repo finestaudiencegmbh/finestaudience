@@ -23,8 +23,10 @@ services:
       - key: NPM_CONFIG_PRODUCTION
         value: "false"
       # --- Google Sheet (ID aus der Sheet-URL) ---
+      # Finest Audience Tracking-Sheet, in Render eintragen. Bewusst kein fester
+      # Wert hier, sonst überschreibt ein Blueprint-Sync den Eintrag in Render.
       - key: SPREADSHEET_ID
-        value: 1mrNTL18VUoYKREXgazVhlMjqDHP9UrtDsdXDS-vlwhE
+        sync: false
       - key: CACHE_TTL_SECONDS
         value: "900"
       # --- KI-Chatbot (optional) – Anthropic-API-Key ---

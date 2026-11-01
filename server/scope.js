@@ -5,7 +5,7 @@
  * Leads nie im Sheet landen. Würde ihr Spend mitzählen, wären Adspend, CPL
  * und Kosten/Ticket zu hoch. Deshalb zählt nur, was im Bereich liegt:
  *
- *   scope.landingPages: Teilstrings der Ziel-URL (z. B. "secretbusiness.live").
+ *   scope.landingPages: Teilstrings der Ziel-URL (z. B. "meine-landingpage.de").
  *                       Eine Kampagne gehört dazu, wenn mindestens eine ihrer
  *                       Anzeigen auf eine passende Landingpage verlinkt.
  *   scope.campaignNames: optional, Teilstrings des Kampagnennamens als

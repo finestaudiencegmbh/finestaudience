@@ -6,7 +6,7 @@ import IntradayChart from './IntradayChart.jsx';
 
 const AMBER = '#f5b84a';
 // Feste Farben je Quellen-Gruppe, damit Dashboard und Quellen-Tab gleich aussehen
-export const SOURCE_COLORS = { 'Meta Ads': '#d51b35', Affiliate: '#a78bfa', 'E-Mail': '#5ec8d8', ManyChat: '#6fcf97', 'Ohne UTM': '#6b6b6b' };
+export const SOURCE_COLORS = { 'Meta Ads': 'var(--accent)', Affiliate: '#f0883e', 'E-Mail': '#5ec8d8', ManyChat: '#6fcf97', 'Ohne UTM': '#6b6b6b' };
 export const sourceColor = (group) => SOURCE_COLORS[group] || '#f5b84a';
 
 function Card({ label, value, sub }) {
@@ -37,7 +37,7 @@ export default function AppointmentsPanel({ appointments, hourlyDay }) {
   const bookings = list.reduce((n, a) => n + (a.bookings || 1), 0);
   const matched = list.filter((a) => a.matchedBy).length;
   const groups = useMemo(() => groupCount(list, (a) => a.sourceGroup, { emptyLabel: 'Ohne UTM' }), [list]);
-  // Liegen alle Termine an EINEM Tag (z. B. Webinar-Tag), Uhrzeit-Verlauf
+  // Liegen alle Termine an EINEM Tag (z. B. ein Event-Tag), Uhrzeit-Verlauf
   // statt eines einzelnen Tagespunkts, auch wenn der Zeitraum länger ist.
   const day = useMemo(() => {
     if (hourlyDay) return hourlyDay;
