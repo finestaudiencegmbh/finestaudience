@@ -31,15 +31,14 @@ const EMPTY_FILTERS = {
   answers: {}, from: '', to: '', onlyTickets: false, tiers: [],
 };
 
-/** Tabs über dem Dashboard: Gesamt + je Funnel, mit Lead-Anzahl im Zeitraum. */
-function FunnelTabs({ funnels, info, active, onSelect, disabled }) {
-  const tabs = [{ key: '', label: 'Gesamt', count: info.total }, ...funnels.map((f) => ({ ...f, count: info.counts?.[f.key] ?? 0 }))];
+/** Filter-Reiter über dem Dashboard: Gesamt + je Funnel. */
+function FunnelTabs({ funnels, active, onSelect, disabled }) {
+  const tabs = [{ key: '', label: 'Gesamt' }, ...funnels];
   return (
     <div className="funnel-tabs" role="tablist" aria-label="Funnel">
       {tabs.map((t) => (
         <button key={t.key || 'all'} role="tab" aria-selected={active === t.key} className={`funnel-tab ${active === t.key ? 'active' : ''}`} onClick={() => onSelect(t.key)} disabled={disabled && active !== t.key}>
           {t.label}
-          <span className="funnel-count">{t.count}</span>
         </button>
       ))}
     </div>
@@ -218,8 +217,8 @@ export default function App() {
 
         {data && (
           <>
-            {project.funnels.length > 0 && data.funnels && (
-              <FunnelTabs funnels={project.funnels} info={data.funnels} active={funnel} onSelect={applyFunnel} disabled={loading} />
+            {project.funnels.length > 0 && (
+              <FunnelTabs funnels={project.funnels} active={funnel} onSelect={applyFunnel} disabled={loading} />
             )}
             <Filters leads={data.leads} filters={filters} setFilters={setFilters} tiers={tiers} onReset={() => setFilters({ ...EMPTY_FILTERS, from: range.from, to: range.to })} />
 

@@ -289,13 +289,11 @@ body {
 /* Funnel-Tabs: Gesamt + je Funnel eine eigene Ansicht */
 .funnel-tabs { display: flex; gap: 6px; padding: 6px; margin-bottom: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; scrollbar-width: none; }
 .funnel-tabs::-webkit-scrollbar { display: none; }
-.funnel-tab { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid transparent; background: transparent; color: var(--ink-soft); font-size: 14.5px; font-weight: 650; cursor: pointer; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+.funnel-tab { display: inline-flex; align-items: center; flex-shrink: 0; padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid transparent; background: transparent; color: var(--ink-soft); font-size: 14.5px; font-weight: 650; cursor: pointer; transition: background .18s ease, border-color .18s ease, color .18s ease; }
 .funnel-tab:hover:not(:disabled) { background: var(--accent-soft); color: var(--ink); }
 .funnel-tab.active { background: rgba(var(--accent-rgb), 0.16); border-color: rgba(var(--accent-rgb), 0.55); color: var(--accent-ink); box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.18) inset; }
 .funnel-tab:disabled { opacity: .45; cursor: default; }
-.funnel-count { min-width: 24px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
-.funnel-tab.active .funnel-count { background: rgba(var(--accent-rgb), 0.3); color: var(--ink); }
-@media (max-width: 640px) { .funnel-tab { padding: 9px 12px; font-size: 14px; } }
+.funnel-tab.active @media (max-width: 640px) { .funnel-tab { padding: 9px 12px; font-size: 14px; } }
 .filters { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); margin-bottom: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .filters-primary { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
 .filters-advanced { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }

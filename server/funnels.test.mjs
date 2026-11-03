@@ -1,7 +1,7 @@
 /**
  * Funnel-Tabs: Zuordnung der Zeilen (Spalte "Funnel", Kampagnenname, bei
- * Terminen E-Mail/Telefon des Leads), Filter je Funnel, Zahlen an den Tabs und
- * der Meta-Bereich je Funnel. Ausführen: node server/funnels.test.mjs
+ * Terminen E-Mail/Telefon des Leads), Filter je Funnel und der Meta-Bereich
+ * je Funnel. Ausführen: node server/funnels.test.mjs
  */
 import assert from 'node:assert/strict';
 import { parseSheets } from './parser.js';
@@ -9,7 +9,7 @@ import { buildDataset } from './build.js';
 import { loadProjectConfig } from './project.js';
 import { loadScoringConfig } from './scoring.js';
 import { applyScope } from './scope.js';
-import { assignFunnels, filterParsed, funnelCounts, funnelList, funnelScope } from './funnels.js';
+import { assignFunnels, filterParsed, funnelList, funnelScope } from './funnels.js';
 
 const P = loadProjectConfig();
 const FUNNELS = funnelList(P);
@@ -51,11 +51,6 @@ assert.equal(keyOf(parsed.leads, 'otto@example.com'), '', 'nicht zuordenbar');
 assert.equal(keyOf(parsed.appointments, 'susanne@example.com'), 'vsl', 'Setting Call über Kampagnenname');
 assert.equal(keyOf(parsed.appointments, 'noe.privat@example.com'), 'vorlagen', 'Setting Call über Telefon des Leads');
 assert.equal(keyOf(parsed.appointments, 'paul@example.com'), 'vsl', 'Setting Call über E-Mail des Leads');
-
-// --- Zahlen an den Tabs (Zeitraum 03.11.) ------------------------------------
-const day = (l) => l.wonAt.slice(0, 10) === '2026-11-03';
-assert.deepEqual(funnelCounts(parsed.leads, FUNNELS, day), { total: 4, counts: { vsl: 2, vorlagen: 2 } }, 'Tabs im Zeitraum');
-assert.deepEqual(funnelCounts(parsed.leads, FUNNELS), { total: 6, counts: { vsl: 2, vorlagen: 3 } }, 'Gesamt enthält auch Nicht-Zuordenbare');
 
 // --- Ansicht je Funnel: nur dessen Leads und Setting Calls --------------------
 const view = (key) => buildDataset(filterParsed(structuredClone(parsed), key), loadScoringConfig(), P.features, P.sheet.utmRoles);

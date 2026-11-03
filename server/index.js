@@ -13,7 +13,7 @@ import { isSupermetricsConfigured, fetchFbInsights, aggregateFb } from './superm
 import { isMetaConfigured, fetchMetaAll, diagnoseMeta, findInMeta, accountTargets, META_STEPS_PER_ACCOUNT } from './meta.js';
 import { resolveAdIds } from './adid.js';
 import { combineByAccount, attachAppointments } from './accounts.js';
-import { assignFunnels, filterParsed, funnelCounts, funnelList, funnelScope } from './funnels.js';
+import { assignFunnels, filterParsed, funnelList, funnelScope } from './funnels.js';
 import { applyScope } from './scope.js';
 import { isChatConfigured, buildContext, chat } from './chat.js';
 import { loadProjectConfig, publicProjectConfig } from './project.js';
@@ -148,13 +148,6 @@ async function buildPayloadInner({ from, to, funnel, key, prog, refresh }) {
   // in die Datensätze, die geteilten Rohdaten bleiben unverändert.
   const parsed = filterParsed(structuredClone(raw.parsed), activeFunnel?.key || '');
   const dataset = buildDataset(parsed, cfg, features, PROJECT.sheet.utmRoles);
-  const inRange = (l) => {
-    const day = (l.wonAt || '').slice(0, 10);
-    return Boolean(day) && (!from || day >= from) && (!to || day <= to);
-  };
-  const funnelInfo = funnels.length
-    ? { active: activeFunnel?.key || '', ...funnelCounts(raw.parsed.leads, funnels, inRange) }
-    : null;
 
   // Facebook-Ads-Daten: bevorzugt direkt über die Meta Marketing API,
   // alternativ über Supermetrics. Fehler hier dürfen das Sheet-Dashboard
@@ -219,7 +212,7 @@ async function buildPayloadInner({ from, to, funnel, key, prog, refresh }) {
     project: publicProjectConfig(PROJECT),
     scoring: features.hasQuality ? { weights: cfg.weights, tiers: cfg.tiers } : { weights: {}, tiers: [] },
     fb,
-    funnels: funnelInfo,
+    funnel: activeFunnel?.key || '',
     ...dataset,
   };
   cache.set(key, { at: Date.now(), payload });

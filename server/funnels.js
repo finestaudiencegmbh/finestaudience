@@ -1,5 +1,5 @@
 /**
- * Funnel-Ansichten: Gesamt plus je Funnel ein eigenes Dashboard.
+ * Funnel-Filter: Gesamt plus je Funnel eine eigene Ansicht mit eigenen KPIs.
  *
  * config/project.config.json -> "funnels": [
  *   { "key": "vsl", "label": "Neukunden VSL",
@@ -73,18 +73,6 @@ export function filterParsed(parsed, key) {
   if (!key) return parsed;
   const keep = (rows) => (rows || []).filter((r) => r.funnelKey === key);
   return { ...parsed, leads: keep(parsed.leads), tickets: keep(parsed.tickets), appointments: keep(parsed.appointments) };
-}
-
-/** Lead-Anzahl je Funnel im Zeitraum (für die Zahlen an den Tabs). */
-export function funnelCounts(leads, funnels, inRange = () => true) {
-  const counts = Object.fromEntries(funnels.map((f) => [f.key, 0]));
-  let total = 0;
-  for (const l of leads || []) {
-    if (!inRange(l)) continue;
-    total += 1;
-    if (l.funnelKey && l.funnelKey in counts) counts[l.funnelKey] += 1;
-  }
-  return { total, counts };
 }
 
 /** Meta-Bereich für einen Funnel (Format wie project.scope). */
