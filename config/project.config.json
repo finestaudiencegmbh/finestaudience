@@ -46,11 +46,11 @@
   },
   "_comment_sheet": "Spalten-Mapping des Google Sheets. Alle Werte werden normalisiert verglichen (klein, ohne ? : . und ohne Mehrfach-Leerzeichen) – 'Monatliches Einkommen?' trifft also 'monatliches einkommen'. Mehrere Einträge je Feld = Fallback-Reihenfolge.",
   "sheet": {
-    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Erlaubte Werte: source, medium, campaign, term, content oder null. Finest: Standard-Schema utm_campaign={{campaign.name}}, utm_term={{adset.name}}, utm_content={{ad.name}}, Placement wird nicht getrackt. Mit Jan abgleichen, sobald der URL-Parameter-String der Meta-Anzeigen feststeht. Steht eine Ad-ID in der Zeile, gewinnt sie: Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta.",
+    "_comment_utmRoles": "Welcher UTM-Parameter trägt welche Dimension? Erlaubte Werte: source, medium, campaign, term, content oder null. SCHEMA Finest (Meta-Anzeigen): utm_source={{adset.name}}, utm_medium={{ad.name}}, utm_campaign={{campaign.name}}, utm_term={{ad.id}}. Die Ad-ID aus utm_term gewinnt (siehe columns.*.adId): Kampagne, Anzeigengruppe und Creative kommen dann direkt aus Meta, die UTM-Namen sind nur Fallback. Placement wird nicht getrackt.",
     "utmRoles": {
       "campaign": "campaign",
-      "adset": "term",
-      "creative": "content",
+      "adset": "source",
+      "creative": "medium",
       "placement": null
     },
     "_comment_detect": "Tabellen-Erkennung an der Kopfzeile (Tab-Namen sind egal). Eine Regel trifft, wenn ALLE 'all'-Spalten vorhanden sind UND (ohne 'some') mindestens eine 'some'-Spalte. Finest: Lead-Tabs ('VSL Leads', 'Funnel Vorlagen Leads') haben als einzige die Spalte 'Funnel'; Termine = 'Setting Calls' (Spalte 'Datum Setting Call'). 'Closing Calls', 'Closings', 'Funnels' und 'Produkte' treffen keine Regel.",
@@ -132,7 +132,9 @@
           "ad_id",
           "ad id",
           "h_ad_id",
-          "cmc_adid"
+          "cmc_adid",
+          "utm term",
+          "utm_term"
         ]
       },
       "tickets": {
@@ -170,8 +172,11 @@
         ],
         "adId": [
           "ad_id",
+          "ad id",
           "h_ad_id",
-          "cmc_adid"
+          "cmc_adid",
+          "utm term",
+          "utm_term"
         ]
       },
       "appointments": {
@@ -219,7 +224,9 @@
           "ad_id",
           "ad id",
           "h_ad_id",
-          "cmc_adid"
+          "cmc_adid",
+          "utm term",
+          "utm_term"
         ]
       },
       "overview": {
