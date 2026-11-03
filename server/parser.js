@@ -259,6 +259,8 @@ function parseLeadRow(o, cols) {
     firstName: norm(pick(o, cols.firstName)),
     lastName: norm(pick(o, cols.lastName)),
     email: normEmail(pick(o, cols.email)),
+    phone: norm(pick(o, cols.phone)),
+    funnel: norm(pick(o, cols.funnel)), // Landingpage/Funnel-Spalte (Funnel-Tabs, server/funnels.js)
     utm: utmOf(o, cols),
     adId: adIdOf(o, cols),
     ticketAt: parseDate(pick(o, cols.ticketDate)),
@@ -296,6 +298,7 @@ function parseAppointmentRow(o, cols) {
     email: normEmail(pick(o, cols.email)),
     phone: norm(pick(o, cols.phone)),
     closer: norm(pick(o, cols.closer)),
+    funnel: norm(pick(o, cols.funnel)),
     utm: utmOf(o, cols),
     adId: adIdOf(o, cols),
   };

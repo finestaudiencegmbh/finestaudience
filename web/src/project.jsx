@@ -17,6 +17,7 @@ export const DEFAULT_PROJECT = {
   features: { hasTickets: true, hasQuality: true, hasAppointments: false },
   labels: { ticket: { one: 'Ticket', many: 'Tickets', short: 'Ticket' }, appointment: { one: 'Termin', many: 'Termine' } },
   answers: {},
+  funnels: [],
 };
 
 const ProjectContext = createContext(DEFAULT_PROJECT);
@@ -115,6 +116,7 @@ export function ProjectProvider({ project, children }) {
         appointment: { ...DEFAULT_PROJECT.labels.appointment, ...((p.labels || {}).appointment || {}) },
       },
       answers: p.answers || {},
+      funnels: Array.isArray(p.funnels) ? p.funnels : [],
     };
   }, [project]);
 

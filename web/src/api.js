@@ -1,10 +1,11 @@
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function fetchData({ refresh = false, from = '', to = '', retries = 2 } = {}) {
+export async function fetchData({ refresh = false, from = '', to = '', funnel = '', retries = 2 } = {}) {
   const params = new URLSearchParams();
   if (refresh) params.set('refresh', '1');
   if (from) params.set('from', from);
   if (to) params.set('to', to);
+  if (funnel) params.set('funnel', funnel);
   const qs = params.toString();
   const url = `/api/data${qs ? `?${qs}` : ''}`;
 

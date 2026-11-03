@@ -26,6 +26,29 @@
     ],
     "campaignNames": []
   },
+  "_comment_funnels": "Funnel-Tabs oben im Dashboard: 'Gesamt' plus je Funnel eine eigene Ansicht mit eigenen KPIs, Kampagnen, Graphen, Setting Calls und Leadliste. Zuordnung je Zeile: Spalte 'Funnel' enthält eine der landingPages, sonst Kampagnenname (UTM) enthält einen der campaignNames, bei Setting Calls zusätzlich über E-Mail/Telefon des Leads. Meta: Kampagne gehört zum Funnel, wenn eine Anzeige auf eine seiner landingPages verlinkt oder der Name passt. Leere Liste = keine Tabs.",
+  "funnels": [
+    {
+      "key": "vsl",
+      "label": "Neukunden VSL",
+      "landingPages": [
+        "finest-audience.com/neukunden"
+      ],
+      "campaignNames": [
+        "neukunden vsl"
+      ]
+    },
+    {
+      "key": "vorlagen",
+      "label": "Funnel Vorlagen",
+      "landingPages": [
+        "finest-audience.com/landingpage-vorlage"
+      ],
+      "campaignNames": [
+        "funnel vorlagen"
+      ]
+    }
+  ],
   "_comment_features": "hasTickets: zweite Conversion-Stufe nach dem Lead mit eigenem Tab? hasQuality: Fragebogen + Lead-Scoring (setzt hasTickets voraus). hasAppointments: Termin-Tab vorhanden? Finest: Leads aus 'VSL Leads' und 'Funnel Vorlagen Leads', Termine = Tab 'Setting Calls'. Termine verändern keine Lead- oder Spend-Zahl.",
   "features": {
     "hasTickets": false,
@@ -135,6 +158,13 @@
           "cmc_adid",
           "utm term",
           "utm_term"
+        ],
+        "phone": [
+          "telefon",
+          "telefonnummer"
+        ],
+        "funnel": [
+          "funnel"
         ]
       },
       "tickets": {
@@ -227,6 +257,9 @@
           "cmc_adid",
           "utm term",
           "utm_term"
+        ],
+        "funnel": [
+          "funnel"
         ]
       },
       "overview": {
