@@ -31,6 +31,20 @@ const EMPTY_FILTERS = {
   answers: {}, from: '', to: '', onlyTickets: false, tiers: [],
 };
 
+/** Filter-Reiter über dem Dashboard: Gesamt + je Funnel. */
+function FunnelTabs({ funnels, active, onSelect, disabled }) {
+  const tabs = [{ key: '', label: 'Gesamt' }, ...funnels];
+  return (
+    <div className="funnel-tabs" role="tablist" aria-label="Funnel">
+      {tabs.map((t) => (
+        <button key={t.key || 'all'} role="tab" aria-selected={active === t.key} className={`funnel-tab ${active === t.key ? 'active' : ''}`} onClick={() => onSelect(t.key)} disabled={disabled && active !== t.key}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const project = useProject();
   const { features, labels, branding } = project;
@@ -43,15 +57,17 @@ export default function App() {
   const [range, setRange] = useState(thisMonthRange);
   const [filters, setFilters] = useState(() => ({ ...EMPTY_FILTERS, from: range.from, to: range.to }));
   const [view, setView] = useState('dashboard');
+  // Funnel-Tab ('' = Gesamt). Der Server rechnet die ganze Ansicht für den Funnel.
+  const [funnel, setFunnel] = useState('');
   // Erster Start: HUD bleibt nach dem Laden kurz stehen und fährt auseinander,
   // während sich das Dashboard darunter öffnet.
   const [intro, setIntro] = useState(true);
 
-  const load = async (refresh = false, r = range) => {
+  const load = async (refresh = false, r = range, f = funnel) => {
     setLoading(true);
     setError(null);
     try {
-      setData(await fetchData({ refresh, from: r.from, to: r.to }));
+      setData(await fetchData({ refresh, from: r.from, to: r.to, funnel: f }));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -72,6 +88,12 @@ export default function App() {
     // Zeitraum steuert Server (FB) UND die clientseitige Lead-Filterung
     setFilters((f) => ({ ...f, from: r.from, to: r.to }));
     load(false, r);
+  };
+
+  const applyFunnel = (f) => {
+    if (f === funnel) return;
+    setFunnel(f);
+    load(false, range, f);
   };
 
   const tiers = data?.scoring?.tiers || [];
@@ -195,6 +217,9 @@ export default function App() {
 
         {data && (
           <>
+            {project.funnels.length > 0 && (
+              <FunnelTabs funnels={project.funnels} active={funnel} onSelect={applyFunnel} disabled={loading} />
+            )}
             <Filters leads={data.leads} filters={filters} setFilters={setFilters} tiers={tiers} onReset={() => setFilters({ ...EMPTY_FILTERS, from: range.from, to: range.to })} />
 
             {view === 'dashboard' && (

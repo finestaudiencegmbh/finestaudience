@@ -107,5 +107,6 @@ export function publicProjectConfig(cfg = loadProjectConfig()) {
     features: cfg.features,
     labels: cfg.labels,
     answers,
+    funnels: (cfg.funnels || []).filter((f) => f && f.key && f.label).map((f) => ({ key: String(f.key), label: String(f.label) })),
   };
 }

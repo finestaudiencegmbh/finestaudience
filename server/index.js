@@ -13,6 +13,7 @@ import { isSupermetricsConfigured, fetchFbInsights, aggregateFb } from './superm
 import { isMetaConfigured, fetchMetaAll, diagnoseMeta, findInMeta, accountTargets, META_STEPS_PER_ACCOUNT } from './meta.js';
 import { resolveAdIds } from './adid.js';
 import { combineByAccount, attachAppointments } from './accounts.js';
+import { assignFunnels, filterParsed, funnelList, funnelScope } from './funnels.js';
 import { applyScope } from './scope.js';
 import { isChatConfigured, buildContext, chat } from './chat.js';
 import { loadProjectConfig, publicProjectConfig } from './project.js';
@@ -67,7 +68,7 @@ function startProgress(key, total) {
 }
 
 function loadDataset(opts = {}) {
-  const key = `${opts.from || ''}|${opts.to || ''}`;
+  const key = `${opts.from || ''}|${opts.to || ''}|${opts.funnel || ''}`;
   const hit = cache.get(key);
   if (!opts.refresh && hit && Date.now() - hit.at < CACHE_TTL) return Promise.resolve(hit.payload);
   if (inflight.has(key)) return inflight.get(key);
@@ -76,34 +77,76 @@ function loadDataset(opts = {}) {
   return run;
 }
 
-async function buildPayload({ from = '', to = '', refresh = false } = {}) {
-  const key = `${from}|${to}`;
+async function buildPayload({ from = '', to = '', funnel = '', refresh = false } = {}) {
+  // Fortschritt je Zeitraum (nicht je Funnel): der Abruf von Sheet und Meta
+  // ist der langsame Teil, und den teilen sich alle Funnel-Ansichten.
+  const progKey = `${from}|${to}`;
   const metaSteps = isMetaConfigured() ? accountTargets().length * META_STEPS_PER_ACCOUNT : 0;
   // Sheet + Meta-Abrufe + Berechnen
-  const prog = startProgress(key, 1 + metaSteps + 1);
+  const prog = startProgress(progKey, 1 + metaSteps + 1);
   try {
-    return await buildPayloadInner({ from, to, key, prog, refresh });
+    return await buildPayloadInner({ from, to, funnel, key: `${from}|${to}|${funnel}`, prog, refresh });
   } finally {
     prog.finish();
   }
 }
 
-async function buildPayloadInner({ from, to, key, prog, refresh }) {
+// --- Roh-Cache je Zeitraum: Sheet + Meta werden EINMAL geholt und von allen
+// Funnel-Ansichten geteilt. Ein Tab-Wechsel rechnet nur neu, ohne neuen Abruf.
+const rawCache = new Map(); // `${from}|${to}` -> { at, value }
+const rawInflight = new Map();
+
+async function fetchRaw({ from, to, prog, refresh }) {
+  const key = `${from}|${to}`;
+  const hit = rawCache.get(key);
+  if (!refresh && hit && Date.now() - hit.at < CACHE_TTL) return hit.value;
+  if (!refresh && rawInflight.has(key)) return rawInflight.get(key);
+  const run = (async () => {
+    const features = PROJECT.features;
+    let parsed;
+    let source;
+    if (isConfigured()) {
+      const sheets = await fetchAllSheets();
+      prog.step('Google Sheet geladen');
+      parsed = parseSheets(sheets, PROJECT.sheet, features);
+      source = 'google';
+    } else {
+      parsed = getSampleParsed(PROJECT);
+      source = 'demo';
+      prog.step('Demo-Daten geladen');
+    }
+    assignFunnels(parsed, funnelList(PROJECT), PROJECT.sheet.utmRoles);
+    let all = null;
+    let metaError = null;
+    if (isMetaConfigured()) {
+      const range = from && to ? { since: from, until: to } : null;
+      try {
+        all = await fetchMetaAll(range, (label) => prog.step(label), { fresh: refresh });
+      } catch (err) {
+        metaError = err;
+      }
+    }
+    const value = { parsed, source, all, metaError };
+    rawCache.set(key, { at: Date.now(), value });
+    // Neuer Rohstand -> fertige Ansichten dieses Zeitraums (alle Funnels) verwerfen
+    for (const k of cache.keys()) if (k.startsWith(`${key}|`)) cache.delete(k);
+    return value;
+  })().finally(() => rawInflight.delete(key));
+  rawInflight.set(key, run);
+  return run;
+}
+
+async function buildPayloadInner({ from, to, funnel, key, prog, refresh }) {
   const cfg = loadScoringConfig();
   const features = PROJECT.features;
   const qualifiedTiers = qualifiedTiersOf(cfg);
-  let parsed;
-  let source;
-  if (isConfigured()) {
-    const sheets = await fetchAllSheets();
-    prog.step('Google Sheet geladen');
-    parsed = parseSheets(sheets, PROJECT.sheet, features);
-    source = 'google';
-  } else {
-    parsed = getSampleParsed(PROJECT);
-    source = 'demo';
-    prog.step('Demo-Daten geladen');
-  }
+  const raw = await fetchRaw({ from, to, prog, refresh });
+  const { source } = raw;
+  const funnels = funnelList(PROJECT);
+  const activeFunnel = funnels.find((f) => f.key === funnel) || null;
+  // Jede Ansicht rechnet auf einer eigenen Kopie: resolveAdIds & Co. schreiben
+  // in die Datensätze, die geteilten Rohdaten bleiben unverändert.
+  const parsed = filterParsed(structuredClone(raw.parsed), activeFunnel?.key || '');
   const dataset = buildDataset(parsed, cfg, features, PROJECT.sheet.utmRoles);
 
   // Facebook-Ads-Daten: bevorzugt direkt über die Meta Marketing API,
@@ -115,7 +158,8 @@ async function buildPayloadInner({ from, to, key, prog, refresh }) {
   let fb = { configured: metaOn || smOn, provider: metaOn ? 'meta' : smOn ? 'supermetrics' : null, error: null, totals: null, byDim: null, rows: 0, hierarchy: null, daily: null };
   if (metaOn) {
     try {
-      const all = await fetchMetaAll(range, (label) => prog.step(label), { fresh: refresh });
+      if (raw.metaError) throw raw.metaError;
+      const all = structuredClone(raw.all);
       // Sheet-Zeilen mit Ad-ID exakt auf die Meta-Anzeige legen (vor dem
       // Zeitraum-Filter, damit auch die Leadliste dieselben Namen zeigt).
       // Bewusst gegen ALLE Kampagnen, damit auch Leads aus Kampagnen außerhalb
@@ -128,7 +172,9 @@ async function buildPayloadInner({ from, to, key, prog, refresh }) {
       }
       // Projekt-Bereich: nur Kampagnen dieses Funnels zählen (Landingpage/Name)
       const scoped = applyScope(all, PROJECT.scope);
-      const meta = scoped.meta;
+      // Funnel-Ansicht: innerhalb des Projekt-Bereichs nur die Kampagnen dieses
+      // Funnels. "Nicht im Dashboard" zeigt weiter nur, was das Projekt ausschließt.
+      const meta = activeFunnel ? applyScope(scoped.meta, funnelScope(activeFunnel)).meta : scoped.meta;
       const agg = aggregateFb(meta.records);
       const excludedKeys = new Set(scoped.excluded.map((c) => `${c.account}::${c.campaign}`));
       const leadsOutside = dataset.leads.filter((l) => l.isLead !== false && l.adAccount && excludedKeys.has(`${l.adAccount}::${l.campaign}`)).length;
@@ -166,6 +212,7 @@ async function buildPayloadInner({ from, to, key, prog, refresh }) {
     project: publicProjectConfig(PROJECT),
     scoring: features.hasQuality ? { weights: cfg.weights, tiers: cfg.tiers } : { weights: {}, tiers: [] },
     fb,
+    funnel: activeFunnel?.key || '',
     ...dataset,
   };
   cache.set(key, { at: Date.now(), payload });
@@ -221,7 +268,8 @@ app.get('/api/data', async (req, res) => {
     const isYmd = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
     const from = isYmd(req.query.from) ? req.query.from : '';
     const to = isYmd(req.query.to) ? req.query.to : '';
-    const payload = await loadDataset({ refresh, from, to });
+    const funnel = funnelList(PROJECT).some((f) => f.key === req.query.funnel) ? req.query.funnel : '';
+    const payload = await loadDataset({ refresh, from, to, funnel });
     res.json(payload);
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err);
